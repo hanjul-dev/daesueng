@@ -77,8 +77,7 @@ export default function ModelAdjustmentPanel() {
         ))}
 
         <div className="rounded-[22px] border border-[color:var(--theme-border)] bg-white/72 px-4 py-3 text-xs leading-6 text-[color:var(--theme-muted-foreground)]">
-          현재 값{' '}
-          {`scale ${modelTransform.scale.toFixed(2)} / x ${modelTransform.positionX.toFixed(1)} / y ${modelTransform.positionY.toFixed(1)} / z ${modelTransform.positionZ.toFixed(1)}`}
+          {`현재 값: scale ${modelTransform.scale.toFixed(2)} / x ${modelTransform.positionX.toFixed(1)} / y ${modelTransform.positionY.toFixed(1)} / z ${modelTransform.positionZ.toFixed(1)}`}
         </div>
       </CardContent>
     </Card>

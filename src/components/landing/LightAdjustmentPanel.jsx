@@ -24,15 +24,15 @@ export default function LightAdjustmentPanel() {
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-2">
-            <Badge variant="secondary">Light Adjust</Badge>
+            <Badge variant="secondary">광원 보정</Badge>
             <CardTitle className="text-[26px]">GLB Lighting</CardTitle>
           </div>
           <Button variant="ghost" size="sm" onClick={resetLightTuning}>
-            Reset
+            초기화
           </Button>
         </div>
         <CardDescription className="text-[15px]">
-          태양광 각도와 보조광 세기를 먼저 맞춘 뒤, 최종 숫자를 주시면 그대로 하드코딩하겠습니다.
+          태양광 방향과 보조광 밝기를 맞춰보신 뒤 최종 숫자를 주시면 그대로 고정하겠습니다.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -55,7 +55,7 @@ export default function LightAdjustmentPanel() {
         ))}
 
         <div className="rounded-[22px] border border-[color:var(--theme-border)] bg-white/72 px-4 py-3 text-xs leading-6 text-[color:var(--theme-muted-foreground)]">
-          {`sun ${lightTuning.keyAngle.toFixed(0)}deg / ${lightTuning.keyHeight.toFixed(1)}h / ${lightTuning.keyIntensity.toFixed(2)} | fill ${lightTuning.fillAngle.toFixed(0)}deg / ${lightTuning.fillHeight.toFixed(1)}h / ${lightTuning.fillIntensity.toFixed(2)} | exposure ${lightTuning.exposure.toFixed(2)}`}
+          {`현재 값: sun ${lightTuning.keyAngle.toFixed(0)}deg / ${lightTuning.keyHeight.toFixed(1)}h / ${lightTuning.keyIntensity.toFixed(2)} | fill ${lightTuning.fillAngle.toFixed(0)}deg / ${lightTuning.fillHeight.toFixed(1)}h / ${lightTuning.fillIntensity.toFixed(2)} | exposure ${lightTuning.exposure.toFixed(2)}`}
         </div>
       </CardContent>
     </Card>
