@@ -7,11 +7,11 @@ const MAX_DISTANCE = (JOYSTICK_SIZE - KNOB_SIZE) / 2
 
 export default function VirtualJoystick() {
   const navMode = useAppStore((s) => s.navMode)
+  const isExperienceFullscreen = useAppStore((s) => s.isExperienceFullscreen)
   const [isMobile, setIsMobile] = useState(false)
   const [active, setActive] = useState(false)
   const [knobPos, setKnobPos] = useState({ x: 0, y: 0 })
   const [lookActive, setLookActive] = useState(false)
-  const [lookDelta, setLookDelta] = useState({ x: 0, y: 0 })
   const baseRef = useRef(null)
   const lookStartRef = useRef({ x: 0, y: 0 })
   const touchIdRef = useRef(null)
@@ -39,7 +39,6 @@ export default function VirtualJoystick() {
 
   useEffect(() => {
     if (window.__joystickInput) {
-      const dist = Math.sqrt(knobPos.x * knobPos.x + knobPos.y * knobPos.y)
       const maxD = MAX_DISTANCE
       window.__joystickInput = {
         x: knobPos.x / maxD,
@@ -126,11 +125,10 @@ export default function VirtualJoystick() {
     }
   }, [])
 
-  if (!isMobile || navMode !== 'firstperson') return null
+  if (!isMobile || !isExperienceFullscreen || navMode !== 'walk') return null
 
   return (
     <>
-      {/* Left joystick - Movement */}
       <div
         className="fixed z-[60] pointer-events-auto"
         style={{
@@ -156,13 +154,11 @@ export default function VirtualJoystick() {
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          {/* Direction indicators */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[8px] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>W</div>
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>S</div>
           <div className="absolute left-2 top-1/2 -translate-y-1/2 text-[8px] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>A</div>
           <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>D</div>
 
-          {/* Knob */}
           <div
             className="absolute rounded-full"
             style={{
@@ -185,7 +181,6 @@ export default function VirtualJoystick() {
         </div>
       </div>
 
-      {/* Right pad - Look */}
       <div
         className="fixed z-[60] pointer-events-auto"
         style={{
@@ -210,7 +205,6 @@ export default function VirtualJoystick() {
           onTouchEnd={handleLookEnd}
           onTouchCancel={handleLookEnd}
         >
-          {/* Look icon */}
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
                style={{ color: lookActive ? 'rgba(0,212,255,0.5)' : 'rgba(255,255,255,0.15)' }}>
             <circle cx="12" cy="12" r="3"/>

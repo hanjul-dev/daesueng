@@ -1,0 +1,33 @@
+:root {
+  --theme-font-sans:
+    'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Noto Sans KR', sans-serif;
+  --theme-page-background: #f3f0ea;
+  --theme-page-background-strong: #fcfbf8;
+  --theme-panel: rgba(255, 255, 255, 0.8);
+  --theme-panel-strong: rgba(255, 255, 255, 0.94);
+  --theme-panel-muted: rgba(255, 255, 255, 0.64);
+  --theme-viewer-background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.48), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06));
+  --theme-foreground: #111214;
+  --theme-foreground-soft: #202124;
+  --theme-foreground-inverse: #faf8f3;
+  --theme-muted-foreground: #595a5d;
+  --theme-subtle-foreground: #7d7d83;
+  --theme-border: rgba(17, 18, 20, 0.1);
+  --theme-border-strong: rgba(17, 18, 20, 0.16);
+  --theme-accent: #171719;
+  --theme-accent-soft: #2a2a2d;
+  --theme-accent-muted: #f0ece5;
+  --theme-shadow-card: 0 30px 90px rgba(25, 28, 35, 0.1);
+  --theme-shadow-soft: 0 12px 36px rgba(25, 28, 35, 0.07);
+  --theme-shadow-viewer: 0 40px 120px rgba(24, 28, 34, 0.16);
+  --theme-shadow-island: 0 20px 60px rgba(0, 0, 0, 0.22);
+  --theme-island-background: rgba(14, 14, 16, 0.94);
+  --theme-island-border: rgba(255, 255, 255, 0.12);
+  --theme-island-glow: rgba(217, 224, 197, 0.72);
+  --theme-photo-stone: #d8d0c2;
+  --theme-photo-olive: #7a806c;
+  --theme-photo-charcoal: #2e3135;
+}

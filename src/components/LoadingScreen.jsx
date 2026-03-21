@@ -1,99 +1,78 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useProgress } from '@react-three/drei'
 import useAppStore from '../store/useAppStore'
 
+function getLoadingMessage(progress) {
+  if (progress < 30) return '외관 매스와 기본 장면을 먼저 준비하고 있습니다.'
+  if (progress < 65) return '재료감과 주요 입면 요소를 순서대로 불러오고 있습니다.'
+  if (progress < 90) return '광량과 그림자 균형을 정리해 보기 편한 상태로 맞추고 있습니다.'
+  return '외관 프리뷰가 거의 준비되었습니다.'
+}
+
 export default function LoadingScreen() {
-  const { isLoading, loadingProgress } = useAppStore()
-  const [fadeOut, setFadeOut] = useState(false)
-  const [tips] = useState([
-    'Use WASD keys to walk through the building',
-    'Scroll to zoom in orbit mode',
-    'Click hotspots to view specifications',
-    'Toggle layers to show/hide systems',
-    'Adjust time slider to simulate sunlight',
-  ])
-  const [currentTip, setCurrentTip] = useState(0)
+  const isLoading = useAppStore((state) => state.isLoading)
+  const setLoadingProgress = useAppStore((state) => state.setLoadingProgress)
+  const setLoadingStage = useAppStore((state) => state.setLoadingStage)
+  const setLoaded = useAppStore((state) => state.setLoaded)
+  const { progress, active, loaded, total } = useProgress()
+  const resolvedProgress = total === 0 ? 100 : progress
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % tips.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [tips.length])
+    setLoadingProgress(resolvedProgress)
+
+    if (resolvedProgress < 30) setLoadingStage('shell')
+    else if (resolvedProgress < 75) setLoadingStage('materials')
+    else if (resolvedProgress < 100) setLoadingStage('lighting')
+  }, [resolvedProgress, setLoadingProgress, setLoadingStage])
 
   useEffect(() => {
-    if (!isLoading) {
-      setFadeOut(true)
+    if (resolvedProgress >= 100 && !active) {
+      const timeout = window.setTimeout(() => setLoaded(), 360)
+      return () => window.clearTimeout(timeout)
     }
-  }, [isLoading])
 
-  if (!isLoading && fadeOut) {
-    return null
-  }
+    return undefined
+  }, [active, resolvedProgress, setLoaded])
+
+  const progressLabel = useMemo(() => Math.round(resolvedProgress), [resolvedProgress])
 
   return (
     <div
-      className="loading-screen"
+      className="absolute inset-0 z-20 grid place-items-center bg-white/76 p-6 backdrop-blur-2xl"
       style={{
-        opacity: fadeOut ? 0 : 1,
-        transition: 'opacity 0.8s ease-out',
-        pointerEvents: fadeOut ? 'none' : 'auto',
+        opacity: isLoading ? 1 : 0,
+        transition: 'opacity 0.85s ease',
+        pointerEvents: isLoading ? 'auto' : 'none',
+        visibility: isLoading ? 'visible' : 'hidden',
       }}
     >
-      {/* Ambient particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+      <div className="w-full max-w-[560px] rounded-[36px] border border-[color:var(--theme-border)] bg-[color:var(--theme-panel-strong)] p-8 shadow-[var(--theme-shadow-card)]">
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-[color:var(--theme-subtle-foreground)]">
+          DAESEUNG CONSTRUCTION
+        </p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[color:var(--theme-foreground)] sm:text-4xl">
+          외관 프리뷰를 준비하고 있습니다
+        </h1>
+        <p className="mt-4 text-[15px] leading-7 text-[color:var(--theme-muted-foreground)]">
+          정면 인상, 커튼월 비례, 차고 접근과 공원 방향 조망을 편안하게 확인하실 수 있도록 장면을 정리하고 있습니다.
+        </p>
+
+        <div className="mt-7 h-1.5 w-full overflow-hidden rounded-full bg-black/6">
           <div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              width: Math.random() * 4 + 1 + 'px',
-              height: Math.random() * 4 + 1 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              background: `rgba(0, 212, 255, ${Math.random() * 0.3 + 0.1})`,
-              animation: `pulse-glow ${Math.random() * 3 + 2}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
+            className="h-full rounded-full bg-[color:var(--theme-accent)] transition-[width] duration-300"
+            style={{ width: `${progressLabel}%` }}
           />
-        ))}
-      </div>
-
-      {/* Logo */}
-      <div className="loading-logo mb-8">
-        <div className="relative z-10 text-3xl font-bold" style={{ color: 'var(--accent)' }}>
-          <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
-            <path d="M25 5L45 15V35L25 45L5 35V15L25 5Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-            <path d="M25 5V45M5 15L45 35M45 15L5 35" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-            <circle cx="25" cy="25" r="5" fill="currentColor" opacity="0.8"/>
-          </svg>
         </div>
-      </div>
 
-      {/* Title */}
-      <h1 className="text-2xl font-semibold tracking-wide mb-2" style={{ color: 'var(--text-primary)' }}>
-        4D Architectural Walkthrough
-      </h1>
-      <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
-        대승건설 3D 조감도
-      </p>
+        <div className="mt-4 flex items-center justify-between gap-3 text-sm text-[color:var(--theme-muted-foreground)]">
+          <span>{getLoadingMessage(resolvedProgress)}</span>
+          <span>{progressLabel}%</span>
+        </div>
 
-      {/* Progress bar */}
-      <div className="loading-progress-container mb-4">
-        <div
-          className="loading-progress-bar"
-          style={{ width: `${loadingProgress}%` }}
-        />
-      </div>
-
-      {/* Progress text */}
-      <p className="text-xs font-mono mb-6" style={{ color: 'var(--text-secondary)' }}>
-        Loading assets... {Math.round(loadingProgress)}%
-      </p>
-
-      {/* Tips */}
-      <div className="text-xs px-6 text-center" style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
-        <span className="opacity-50">TIP: </span>
-        <span className="transition-opacity duration-500">{tips[currentTip]}</span>
+        <div className="mt-5 flex items-center justify-between gap-3 text-xs text-[color:var(--theme-subtle-foreground)]">
+          <span>불러온 항목 {loaded}</span>
+          <span>전체 항목 {total}</span>
+        </div>
       </div>
     </div>
   )

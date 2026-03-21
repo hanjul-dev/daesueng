@@ -1,692 +1,884 @@
-import { useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ArrowRight,
+  Building2,
+  CarFront,
+  Gamepad2,
+  House,
+  MapPinned,
+  Maximize2,
+  Monitor,
+  MoonStar,
+  MoveRight,
+  Play,
+  SunMedium,
+  TreePine,
+  X,
+} from 'lucide-react'
 import useAppStore from '../store/useAppStore'
+import { HOTSPOTS } from './Hotspots'
+import {
+  HOTSPOT_DETAILS,
+  OVERVIEW_CARDS,
+  PROPERTY_CONTENT,
+  PROPERTY_MEDIA,
+  SELLING_POINTS,
+  TIME_PRESETS,
+  TOUR_CONTENT,
+  TOUR_HIGHLIGHTS,
+} from '../content/property'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Slider } from './ui/slider'
+import { cn } from '../lib/utils'
+import VirtualJoystick from './VirtualJoystick'
+import exteriorHeroImage from '../assets/property/exterior-hero.jpeg'
+import exteriorAngleImage from '../assets/property/exterior-angle.jpeg'
+import exteriorMaterialImage from '../assets/property/exterior-material.jpeg'
 
-// Icons as simple SVG components
-const SunIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="5"/>
-    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-  </svg>
-)
+const HERO_ICONS = [House, TreePine, CarFront]
+const PHOTO_ASSET_BY_TONE = {
+  hero: {
+    src: exteriorHeroImage,
+    position: 'center center',
+  },
+  park: {
+    src: exteriorAngleImage,
+    position: 'center center',
+  },
+  garage: {
+    src: exteriorMaterialImage,
+    position: 'center center',
+  },
+}
 
-const MoonIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-  </svg>
-)
+function scrollToSection(sectionId) {
+  document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
-const LayersIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-    <polyline points="2 17 12 22 22 17"/>
-    <polyline points="2 12 12 17 22 12"/>
-  </svg>
-)
-
-const CameraIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-    <circle cx="12" cy="13" r="4"/>
-  </svg>
-)
-
-const PaletteIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="13.5" cy="6.5" r="2"/>
-    <circle cx="17.5" cy="10.5" r="2"/>
-    <circle cx="8.5" cy="7.5" r="2"/>
-    <circle cx="6.5" cy="12" r="2"/>
-    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
-  </svg>
-)
-
-const ExplodeIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-  </svg>
-)
-
-const WalkIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="5" r="2"/>
-    <path d="M10 22V18L7 15V10L10 8H14L17 10V15L14 18V22"/>
-  </svg>
-)
-
-const OrbitIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="3"/>
-    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(0 12 12)"/>
-    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
-    <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)"/>
-  </svg>
-)
-
-// Time formatter
 function formatTime(hour) {
-  const h = Math.floor(hour)
-  const m = Math.floor((hour - h) * 60)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`
+  const roundedHour = Math.floor(hour)
+  const minutes = Math.round((hour - roundedHour) * 60)
+  const period = roundedHour >= 12 ? '오후' : '오전'
+  const displayHour = roundedHour === 0 ? 12 : roundedHour > 12 ? roundedHour - 12 : roundedHour
+  return `${period} ${displayHour}시 ${minutes.toString().padStart(2, '0')}분`
 }
 
-// Sky gradient based on time
-function getSkyGradient(hour) {
-  if (hour < 5 || hour > 20) return 'linear-gradient(180deg, #0a0e27, #1a1f3a)'
-  if (hour < 7) return 'linear-gradient(180deg, #1a1040, #ff6b35, #ffb347)'
-  if (hour < 10) return 'linear-gradient(180deg, #3a7bd5, #87ceeb)'
-  if (hour < 16) return 'linear-gradient(180deg, #2196f3, #87ceeb)'
-  if (hour < 18) return 'linear-gradient(180deg, #87ceeb, #ffb347, #ff6b35)'
-  return 'linear-gradient(180deg, #1a1040, #2d1b69, #ff4500)'
+function getTimeNarrative(hour) {
+  if (hour < 8) {
+    return '이른 시간대에는 전면 석재와 프레임 대비가 차분하게 읽혀 첫인상 판단에 좋습니다.'
+  }
+  if (hour < 15) {
+    return '주간광에서는 커튼월 비례와 발코니 수평선이 가장 선명하게 보입니다.'
+  }
+  if (hour < 19.5) {
+    return '석양 구간은 처마 깊이와 매스의 입체감이 가장 풍부하게 드러나는 시간입니다.'
+  }
+  return '야간에는 유리 면의 반사와 실내 빛 분위기가 더해져 외관의 무드가 달라집니다.'
 }
 
-function TimeAndScaleSliders() {
-  const { timeOfDay, setTimeOfDay, modelScale, setModelScale } = useAppStore()
-  const isNight = timeOfDay < 6 || timeOfDay > 18
+function findHotspot(id) {
+  return HOTSPOTS.find((hotspot) => hotspot.id === id) ?? null
+}
+
+function PropertyShot({ tone, eyebrow, title, description, className }) {
+  const photoAsset = PHOTO_ASSET_BY_TONE[tone]
 
   return (
-    <div className="hud-panel glass rounded-xl p-3" id="time-slider">
-      {/* --- Scale Slider --- */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Model Scale</span>
-        <span className="text-xs font-mono font-semibold" style={{ color: 'var(--accent)' }}>
-          {modelScale.toFixed(2)}x
-        </span>
-      </div>
-      <input
-        type="range"
-        min="0.1"
-        max="15"
-        step="0.1"
-        value={modelScale}
-        onChange={(e) => setModelScale(parseFloat(e.target.value))}
-        className="w-full mb-4"
-      />
-
-      {/* --- Time Slider --- */}
-      <div className="flex items-center justify-between mb-2 border-t border-white/10 pt-3">
-        <div className="flex items-center gap-2">
-          <span style={{ color: 'var(--accent)' }}>{isNight ? <MoonIcon /> : <SunIcon />}</span>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>4D Time</span>
-        </div>
-        <span className="text-xs font-mono font-semibold" style={{ color: 'var(--accent)' }}>
-          {formatTime(timeOfDay)}
-        </span>
-      </div>
-
-      {/* Sky preview */}
-      <div
-        className="rounded-md mb-2 h-2"
-        style={{ background: getSkyGradient(timeOfDay) }}
-      />
-
-      <input
-        type="range"
-        min="0"
-        max="24"
-        step="0.25"
-        value={timeOfDay}
-        onChange={(e) => setTimeOfDay(parseFloat(e.target.value))}
-        className="w-full"
-      />
-
-      {/* Time labels */}
-      <div className="flex justify-between mt-1">
-        <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>12AM</span>
-        <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>6AM</span>
-        <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>12PM</span>
-        <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>6PM</span>
-        <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>12AM</span>
-      </div>
-    </div>
-  )
-}
-
-// ========== FLOOR SELECTOR ==========
-function FloorSelector() {
-  const { activeFloor, setActiveFloor, isExploded, toggleExplode } = useAppStore()
-
-  const floors = [
-    { id: 0, label: 'ALL', sublabel: '전체' },
-    { id: 2, label: '2F', sublabel: '2층' },
-    { id: 1, label: '1F', sublabel: '1층' },
-    { id: -1, label: 'B1', sublabel: '지하' },
-  ]
-
-  return (
-    <div className="hud-panel glass rounded-xl p-3" id="floor-selector">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Floor</span>
-        <button
-          className={`hud-btn flex items-center gap-1 px-2 py-1 rounded-md text-xs border ${
-            isExploded ? 'active' : ''
-          }`}
-          style={{ borderColor: 'var(--glass-border)' }}
-          onClick={toggleExplode}
-        >
-          <ExplodeIcon />
-          <span className="hidden sm:inline">Explode</span>
-        </button>
-      </div>
-      <div className="flex flex-col gap-1">
-        {floors.map((floor) => (
-          <button
-            key={floor.id}
-            className={`floor-tab text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-              activeFloor === floor.id ? 'active' : ''
-            }`}
-            style={{
-              background: activeFloor === floor.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
-              color: activeFloor === floor.id ? 'var(--accent)' : 'var(--text-secondary)',
-            }}
-            onClick={() => setActiveFloor(floor.id)}
-          >
-            <span className="font-semibold">{floor.label}</span>
-            <span className="ml-2 opacity-60">{floor.sublabel}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ========== LAYER TOGGLE ==========
-function LayerToggle() {
-  const { layers, toggleLayer, showLayerPanel, toggleLayerPanel } = useAppStore()
-
-  const layerConfig = [
-    { key: 'structure', label: 'Structure', sublabel: '구조', color: '#a0aec0' },
-    { key: 'interior', label: 'Interior', sublabel: '인테리어', color: '#e8e4dc' },
-    { key: 'furniture', label: 'Furniture', sublabel: '가구', color: '#8B6914' },
-    { key: 'hvac', label: 'HVAC', sublabel: '냉난방', color: '#63b3ed' },
-    { key: 'mep', label: 'MEP', sublabel: '배관', color: '#48bb78' },
-  ]
-
-  return (
-    <div className="hud-panel glass rounded-xl p-3" id="layer-toggle">
-      <button
-        className="flex items-center gap-2 w-full mb-2"
-        onClick={toggleLayerPanel}
-      >
-        <span style={{ color: 'var(--accent)' }}><LayersIcon /></span>
-        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Layers</span>
-        <span className="ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {showLayerPanel ? '▲' : '▼'}
-        </span>
-      </button>
-
-      {showLayerPanel && (
-        <div className="flex flex-col gap-1 animate-fadeIn">
-          {layerConfig.map((layer) => (
-            <button
-              key={layer.key}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all hover:bg-white/5"
-              onClick={() => toggleLayer(layer.key)}
-            >
-              <div
-                className="w-3 h-3 rounded-sm flex items-center justify-center transition-all"
-                style={{
-                  background: layers[layer.key] ? layer.color : 'transparent',
-                  border: `1.5px solid ${layers[layer.key] ? layer.color : 'rgba(255,255,255,0.2)'}`,
-                }}
-              >
-                {layers[layer.key] && (
-                  <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6l3 3 5-5" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                )}
-              </div>
-              <span style={{ color: layers[layer.key] ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                {layer.label}
-              </span>
-              <span className="ml-auto opacity-50 text-[10px]">{layer.sublabel}</span>
-            </button>
-          ))}
-        </div>
+    <article className={cn('photo-surface', `photo-surface--${tone}`, className)}>
+      {photoAsset && (
+        <>
+          <img
+            src={photoAsset.src}
+            alt={title}
+            className="photo-surface__image"
+            style={{ objectPosition: photoAsset.position }}
+          />
+          <div className="photo-surface__overlay" />
+        </>
       )}
-    </div>
-  )
-}
-
-// ========== NAV MODE TOGGLE ==========
-function NavModeToggle() {
-  const { navMode, setNavMode } = useAppStore()
-
-  return (
-    <div className="hud-panel glass rounded-xl p-3" id="nav-toggle">
-      <span className="text-xs font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>Navigation</span>
-      <div className="flex gap-1">
-        <button
-          className={`hud-btn flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs border ${
-            navMode === 'orbit' ? 'active' : ''
-          }`}
-          style={{ borderColor: 'var(--glass-border)' }}
-          onClick={() => setNavMode('orbit')}
-        >
-          <OrbitIcon />
-          <span>Orbit</span>
-        </button>
-        <button
-          className={`hud-btn flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs border ${
-            navMode === 'firstperson' ? 'active' : ''
-          }`}
-          style={{ borderColor: 'var(--glass-border)' }}
-          onClick={() => setNavMode('firstperson')}
-        >
-          <WalkIcon />
-          <span>Walk</span>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ========== MINIMAP ==========
-function Minimap() {
-  const cameraPosition = useAppStore((s) => s.cameraPosition)
-  const cameraRotation = useAppStore((s) => s.cameraRotation)
-  const activeFloor = useAppStore((s) => s.activeFloor)
-
-  // Map camera world position to minimap coordinates
-  const mapX = ((cameraPosition[0] + 15) / 30) * 100
-  const mapY = ((cameraPosition[2] + 10) / 20) * 100
-
-  const floorLabel = activeFloor === 0 ? 'ALL' : activeFloor === -1 ? 'B1' : `${activeFloor}F`
-
-  return (
-    <div className="hud-panel glass rounded-xl p-2" id="minimap" style={{ width: '140px' }}>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>Minimap</span>
-        <span className="text-[10px] font-mono" style={{ color: 'var(--accent)' }}>{floorLabel}</span>
-      </div>
-      <div
-        className="minimap-container relative"
-        style={{
-          width: '124px',
-          height: '82px',
-          background: 'rgba(15, 23, 42, 0.9)',
-          border: '1px solid var(--glass-border)',
-        }}
-      >
-        {/* Building outline */}
-        <div
-          className="absolute border"
-          style={{
-            left: '10%',
-            top: '10%',
-            width: '80%',
-            height: '80%',
-            borderColor: 'rgba(255,255,255,0.15)',
-            borderRadius: '2px',
-          }}
-        />
-        {/* Interior walls */}
-        <div className="absolute" style={{ left: '50%', top: '10%', width: '1px', height: '55%', background: 'rgba(255,255,255,0.1)' }} />
-        <div className="absolute" style={{ left: '25%', top: '20%', width: '1px', height: '60%', background: 'rgba(255,255,255,0.1)' }} />
-        <div className="absolute" style={{ left: '75%', top: '20%', width: '1px', height: '60%', background: 'rgba(255,255,255,0.1)' }} />
-
-        {/* Camera position dot */}
-        <div
-          className="minimap-dot"
-          style={{
-            left: `${Math.min(95, Math.max(5, mapX))}%`,
-            top: `${Math.min(95, Math.max(5, mapY))}%`,
-          }}
-        />
-
-        {/* Direction indicator */}
-        <div
-          className="absolute"
-          style={{
-            left: `${Math.min(95, Math.max(5, mapX))}%`,
-            top: `${Math.min(95, Math.max(5, mapY))}%`,
-            width: '12px',
-            height: '2px',
-            background: 'var(--accent)',
-            transformOrigin: '0 50%',
-            transform: `rotate(${-cameraRotation * (180 / Math.PI) + 90}deg)`,
-            opacity: 0.7,
-          }}
-        />
-      </div>
-    </div>
-  )
-}
-
-// ========== MATERIAL CONFIGURATOR ==========
-function MaterialConfigurator() {
-  const { materialConfig, setMaterial, showConfigurator, toggleConfigurator } = useAppStore()
-
-  const areas = [
-    {
-      key: 'lobbyFloor',
-      label: 'Lobby Floor',
-      sublabel: '로비 바닥',
-      options: [
-        { id: 'marble-white', label: 'White Marble', color: '#f0ece4' },
-        { id: 'marble-black', label: 'Black Marble', color: '#2d2d2d' },
-        { id: 'marble-beige', label: 'Beige Marble', color: '#d4c5a9' },
-        { id: 'wood-oak', label: 'Oak Wood', color: '#b8860b' },
-        { id: 'wood-walnut', label: 'Walnut', color: '#5c3317' },
-      ],
-    },
-    {
-      key: 'officeWalls',
-      label: 'Office Walls',
-      sublabel: '사무실 벽면',
-      options: [
-        { id: 'paint-warm-gray', label: 'Warm Gray', color: '#d6d0c4' },
-        { id: 'paint-cool-blue', label: 'Cool Blue', color: '#c5d5e4' },
-        { id: 'paint-sage-green', label: 'Sage Green', color: '#c5d4c0' },
-      ],
-    },
-    {
-      key: 'hallwayFloor',
-      label: 'Hallway Floor',
-      sublabel: '복도 바닥',
-      options: [
-        { id: 'tile-dark', label: 'Dark Tile', color: '#4a4a4a' },
-        { id: 'tile-light', label: 'Light Tile', color: '#e0ddd5' },
-        { id: 'tile-terracotta', label: 'Terracotta', color: '#c8735b' },
-      ],
-    },
-  ]
-
-  return (
-    <div className="hud-panel glass rounded-xl p-3" id="configurator">
-      <button
-        className="flex items-center gap-2 w-full"
-        onClick={toggleConfigurator}
-      >
-        <span style={{ color: 'var(--accent)' }}><PaletteIcon /></span>
-        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-          Design Configurator
-        </span>
-        <span className="ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {showConfigurator ? '▲' : '▼'}
-        </span>
-      </button>
-
-      {showConfigurator && (
-        <div className="mt-3 space-y-3 animate-fadeIn">
-          {areas.map((area) => (
-            <div key={area.key}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {area.label}
-                </span>
-                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                  {area.sublabel}
-                </span>
-              </div>
-              <div className="flex gap-1.5 flex-wrap">
-                {area.options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    className="group relative"
-                    onClick={() => setMaterial(area.key, opt.id)}
-                    title={opt.label}
-                  >
-                    <div
-                      className="w-7 h-7 rounded-md transition-all"
-                      style={{
-                        background: opt.color,
-                        border: materialConfig[area.key] === opt.id
-                          ? '2px solid var(--accent)'
-                          : '2px solid transparent',
-                        boxShadow: materialConfig[area.key] === opt.id
-                          ? '0 0 8px rgba(0, 212, 255, 0.4)'
-                          : 'none',
-                        transform: materialConfig[area.key] === opt.id ? 'scale(1.1)' : 'scale(1)',
-                      }}
-                    />
-                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[8px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
-                         style={{ color: 'var(--text-secondary)' }}>
-                      {opt.label}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ========== HOTSPOT POPUP ==========
-function HotspotPopup() {
-  const { selectedHotspot, clearSelectedHotspot } = useAppStore()
-
-  if (!selectedHotspot) return null
-
-  return (
-    <div className="popup-overlay" onClick={clearSelectedHotspot}>
-      <div className="popup-content glass rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <span className="text-2xl mr-2">{selectedHotspot.icon}</span>
-            <h2 className="text-lg font-semibold inline" style={{ color: 'var(--text-primary)' }}>
-              {selectedHotspot.title}
-            </h2>
+      <div className="photo-surface__grain" />
+      <div className="relative z-10 flex h-full flex-col justify-between gap-10">
+        <div className="max-w-[72%] space-y-3">
+          <Badge variant="inverse" className="w-fit border-white/15 bg-black/60 text-white">
+            {eyebrow}
+          </Badge>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-semibold tracking-[-0.04em] text-white sm:text-[30px]">
+              {title}
+            </h3>
+            <p className="text-sm leading-7 text-white/80 sm:text-[15px]">{description}</p>
           </div>
-          <button
-            className="text-lg px-2 py-1 rounded-lg hover:bg-white/10 transition-colors"
-            style={{ color: 'var(--text-secondary)' }}
-            onClick={clearSelectedHotspot}
-          >
-            ✕
-          </button>
         </div>
 
-        {/* Floor badge */}
-        <div className="mb-4">
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold"
-                style={{ background: 'rgba(0, 212, 255, 0.15)', color: 'var(--accent)' }}>
-            {selectedHotspot.floor}
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-xs font-medium text-white/86 backdrop-blur-md">
+          <span className="h-2 w-2 rounded-full bg-white/70" />
+          Real Exterior Photo
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-[color:var(--theme-border)] bg-white/82 backdrop-blur-2xl">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:flex-nowrap sm:gap-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <Badge>{PROPERTY_CONTENT.brand}</Badge>
+          <span className="hidden text-sm text-[color:var(--theme-subtle-foreground)] sm:block">
+            {PROPERTY_CONTENT.badge}
           </span>
         </div>
 
-        {/* Specs */}
-        <div className="space-y-3">
-          <div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold block mb-1"
-                  style={{ color: 'var(--accent)' }}>
-              Material
-            </span>
-            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-              {selectedHotspot.specs.material}
-            </p>
-          </div>
-          <div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold block mb-1"
-                  style={{ color: 'var(--accent)' }}>
-              Dimensions
-            </span>
-            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-              {selectedHotspot.specs.dimensions}
-            </p>
-          </div>
-          <div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold block mb-1"
-                  style={{ color: 'var(--accent)' }}>
-              Details
-            </span>
-            <div className="text-sm space-y-0.5" style={{ color: 'var(--text-secondary)' }}>
-              {selectedHotspot.specs.details.split('\n').map((line, i) => (
-                <p key={i} className="flex items-start gap-1.5">
-                  <span style={{ color: 'var(--accent)' }}>•</span>
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 2D overlay placeholder */}
-        <div className="mt-4 p-3 rounded-lg text-center text-xs"
-             style={{ background: 'rgba(0,0,0,0.3)', border: '1px dashed var(--glass-border)', color: 'var(--text-secondary)' }}>
-          📐 2D DWG Overlay Available
+        <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:overflow-visible sm:pb-0">
+          <Button variant="ghost" size="sm" onClick={() => scrollToSection('overview')}>
+            매물 소개
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => scrollToSection('experience')}>
+            외관 체험
+          </Button>
+          <Button size="sm" onClick={() => scrollToSection('experience')}>
+            둘러보기
+          </Button>
         </div>
       </div>
-    </div>
+    </header>
   )
 }
 
-// ========== FPS COUNTER ==========
-function FPSCounter() {
-  const fps = useAppStore((s) => s.fps)
+function HeroSection() {
   return (
-    <div className="text-[10px] font-mono px-2 py-1 rounded-md"
-         style={{
-           background: 'rgba(0,0,0,0.4)',
-           color: fps > 50 ? 'var(--success)' : fps > 30 ? 'var(--warning)' : 'var(--danger)',
-         }}>
-      {fps} FPS
-    </div>
-  )
-}
-
-// ========== HELP OVERLAY ==========
-function HelpOverlay() {
-  const { showHelp, toggleHelp } = useAppStore()
-
-  if (!showHelp) return null
-
-  return (
-    <div className="popup-overlay" onClick={toggleHelp} style={{ zIndex: 150 }}>
-      <div className="popup-content glass rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Controls & Help
-          </h2>
-          <button className="text-lg px-2 py-1 rounded-lg hover:bg-white/10"
-                  style={{ color: 'var(--text-secondary)' }}
-                  onClick={toggleHelp}>✕</button>
-        </div>
-
-        <div className="space-y-4 text-sm">
-          <div>
-            <h3 className="font-semibold mb-2" style={{ color: 'var(--accent)' }}>Orbit Mode</h3>
-            <div className="space-y-1" style={{ color: 'var(--text-secondary)' }}>
-              <p>🖱️ Left Click + Drag: Rotate view</p>
-              <p>🖱️ Right Click + Drag: Pan view</p>
-              <p>🖱️ Scroll: Zoom in/out</p>
-            </div>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2" style={{ color: 'var(--accent)' }}>Walk Mode</h3>
-            <div className="space-y-1" style={{ color: 'var(--text-secondary)' }}>
-              <p>⌨️ W/A/S/D: Move forward/left/back/right</p>
-              <p>🖱️ Mouse: Look around</p>
-              <p>⎋ Esc: Exit pointer lock</p>
-            </div>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2" style={{ color: 'var(--accent)' }}>Interaction</h3>
-            <div className="space-y-1" style={{ color: 'var(--text-secondary)' }}>
-              <p>🔵 Click glowing markers for specifications</p>
-              <p>🎨 Use Design Configurator to swap materials</p>
-              <p>⏱️ Drag time slider to simulate sun movement</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ========== MAIN HUD ==========
-export default function HUD() {
-  const navMode = useAppStore((s) => s.navMode)
-  const toggleHelp = useAppStore((s) => s.toggleHelp)
-
-  return (
-    <>
-      <div className="fixed inset-0 pointer-events-none z-50" style={{ fontFamily: "'Inter', sans-serif" }}>
-        {/* Top bar */}
-        <div className="flex items-center justify-between p-3 pointer-events-none">
-          {/* Logo / Title */}
-          <div className="hud-panel glass rounded-xl px-4 py-2 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                 style={{ background: 'linear-gradient(135deg, var(--accent), #7c3aed)' }}>
-              <svg width="18" height="18" viewBox="0 0 50 50" fill="none">
-                <path d="M25 5L45 15V35L25 45L5 35V15L25 5Z" stroke="white" strokeWidth="3" fill="none"/>
-                <circle cx="25" cy="25" r="4" fill="white"/>
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-xs font-semibold tracking-wide" style={{ color: 'var(--text-primary)' }}>
-                4D WALKTHROUGH
+    <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pt-16 lg:px-8 lg:pb-16">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(360px,0.98fr)] lg:items-start lg:gap-8">
+        <div className="space-y-8">
+          <div className="space-y-5">
+            <Badge variant="secondary">{PROPERTY_CONTENT.badge}</Badge>
+            <div className="space-y-4">
+              <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-[color:var(--theme-foreground)] sm:text-5xl lg:text-6xl">
+                {PROPERTY_CONTENT.title}
               </h1>
-              <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                대승건설 · 3D Visualization
+              <p className="max-w-2xl text-base leading-8 text-[color:var(--theme-muted-foreground)] sm:text-lg">
+                {PROPERTY_CONTENT.description}
               </p>
             </div>
           </div>
 
-          {/* Top right: Minimap + FPS */}
-          <div className="flex flex-col items-end gap-2">
-            <Minimap />
-            <div className="flex items-center gap-2">
-              <FPSCounter />
-              <button
-                className="hud-btn text-xs px-2 py-1 rounded-md border"
-                style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
-                onClick={toggleHelp}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button size="lg" onClick={() => scrollToSection('overview')}>
+              {PROPERTY_CONTENT.primaryAction}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="lg" onClick={() => scrollToSection('experience')}>
+              {PROPERTY_CONTENT.secondaryAction}
+            </Button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {PROPERTY_CONTENT.heroFacts.map((fact, index) => {
+              const Icon = HERO_ICONS[index]
+
+              return (
+                <div
+                  key={fact.label}
+                  className="rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl"
+                >
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--theme-accent-muted)]">
+                    <Icon className="h-5 w-5 text-[color:var(--theme-foreground)]" />
+                  </div>
+                  <p className="text-xs text-[color:var(--theme-subtle-foreground)]">{fact.label}</p>
+                  <p className="mt-2 text-base font-medium text-[color:var(--theme-foreground)]">
+                    {fact.value}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {PROPERTY_MEDIA.map((item) => (
+            <PropertyShot
+              key={item.title}
+              tone={item.tone}
+              eyebrow={item.eyebrow}
+              title={item.title}
+              description={item.description}
+              className={item.className}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function OverviewSection() {
+  return (
+    <section id="overview" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
+        <Card className="rounded-[40px]">
+          <CardHeader className="space-y-4">
+            <Badge variant="secondary">매물 소개</Badge>
+            <CardTitle className="max-w-3xl text-3xl sm:text-[40px]">
+              {PROPERTY_CONTENT.overviewTitle}
+            </CardTitle>
+            <CardDescription className="max-w-3xl text-[15px]">
+              {PROPERTY_CONTENT.overviewDescription}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {PROPERTY_CONTENT.overviewNarrative.map((item) => (
+              <div
+                key={item}
+                className="rounded-[26px] border border-[color:var(--theme-border)] bg-white/72 px-5 py-4 text-sm leading-7 text-[color:var(--theme-muted-foreground)]"
               >
-                ?
-              </button>
-            </div>
-          </div>
+                {item}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-4">
+          {OVERVIEW_CARDS.map((item) => (
+            <Card key={item.label} className="rounded-[34px]">
+              <CardHeader className="space-y-2">
+                <Badge>{item.label}</Badge>
+                <CardTitle className="text-[26px]">{item.value}</CardTitle>
+                <CardDescription className="text-[15px]">{item.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          ))}
         </div>
+      </div>
+    </section>
+  )
+}
 
-        {/* Left sidebar */}
-        <div className="absolute left-3 top-20 flex flex-col gap-2 w-48">
-          <FloorSelector />
-          <NavModeToggle />
-          <LayerToggle />
-          <MaterialConfigurator />
+function SellingPointsSection() {
+  const pointIcons = [Building2, MapPinned, CarFront]
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16">
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-3">
+          <Badge variant="secondary">핵심 요약</Badge>
+          <h2 className="text-3xl font-semibold tracking-[-0.04em] text-[color:var(--theme-foreground)] sm:text-4xl">
+            처음 볼 때 바로 판단해야 할 세 가지
+          </h2>
         </div>
-
-        {/* Bottom center: Time and Scale sliders */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-80 max-w-[calc(100%-2rem)]">
-          <TimeAndScaleSliders />
-        </div>
-
-        {/* Walk mode crosshair */}
-        {navMode === 'firstperson' && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <div className="absolute w-px h-4" style={{ background: 'rgba(0, 212, 255, 0.6)' }} />
-              <div className="absolute w-4 h-px" style={{ background: 'rgba(0, 212, 255, 0.6)' }} />
-              <div className="absolute w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(0, 212, 255, 0.4)' }} />
-            </div>
-          </div>
-        )}
-
-        {/* Walk mode instructions */}
-        {navMode === 'firstperson' && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center animate-fadeIn">
-            <div className="glass rounded-lg px-3 py-1.5 text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-              <span className="font-mono" style={{ color: 'var(--accent)' }}>WASD</span> Move · 
-              <span className="font-mono" style={{ color: 'var(--accent)' }}> Mouse</span> Look · 
-              <span className="font-mono" style={{ color: 'var(--accent)' }}> ESC</span> Exit
-            </div>
-          </div>
-        )}
+        <p className="max-w-2xl text-sm leading-7 text-[color:var(--theme-muted-foreground)] sm:text-[15px]">
+          {PROPERTY_CONTENT.contactLine}
+        </p>
       </div>
 
-      {/* Popup overlays */}
-      <HotspotPopup />
-      <HelpOverlay />
-    </>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {SELLING_POINTS.map((point, index) => {
+          const Icon = pointIcons[index]
+
+          return (
+            <Card key={point.title} className="rounded-[32px]">
+              <CardHeader className="space-y-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--theme-accent-muted)]">
+                  <Icon className="h-5 w-5 text-[color:var(--theme-foreground)]" />
+                </div>
+                <div className="space-y-2">
+                  <CardTitle className="text-[28px]">{point.title}</CardTitle>
+                  <CardDescription className="text-[15px]">{point.description}</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function ModelAdjustmentPanel() {
+  const modelTransform = useAppStore((state) => state.modelTransform)
+  const setModelTransform = useAppStore((state) => state.setModelTransform)
+  const resetModelTransform = useAppStore((state) => state.resetModelTransform)
+
+  const adjustmentItems = [
+    {
+      key: 'scale',
+      label: 'Scale',
+      min: 0.4,
+      max: 1.8,
+      step: 0.01,
+    },
+    {
+      key: 'positionX',
+      label: 'Position X',
+      min: -20,
+      max: 20,
+      step: 0.1,
+    },
+    {
+      key: 'positionY',
+      label: 'Position Y',
+      min: -18,
+      max: 8,
+      step: 0.1,
+    },
+    {
+      key: 'positionZ',
+      label: 'Position Z',
+      min: -20,
+      max: 20,
+      step: 0.1,
+    },
+  ]
+
+  return (
+    <Card className="rounded-[34px]">
+      <CardHeader className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-2">
+            <Badge variant="secondary">임시 정렬 조정</Badge>
+            <CardTitle className="text-[26px]">모델 위치 맞추기</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" onClick={resetModelTransform}>
+            초기화
+          </Button>
+        </div>
+        <CardDescription className="text-[15px]">
+          하단이 잘리거나 프레임이 어긋나면 여기서 값을 움직여보세요. 맞는 값을 주시면 그대로 고정하겠습니다.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {adjustmentItems.map((item) => (
+          <div key={item.key} className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-[color:var(--theme-foreground)]">{item.label}</p>
+              <p className="text-xs text-[color:var(--theme-subtle-foreground)]">
+                {Number(modelTransform[item.key]).toFixed(item.key === 'scale' ? 2 : 1)}
+              </p>
+            </div>
+            <Slider
+              min={item.min}
+              max={item.max}
+              step={item.step}
+              value={[modelTransform[item.key]]}
+              onValueChange={([nextValue]) => setModelTransform({ [item.key]: nextValue })}
+            />
+          </div>
+        ))}
+
+        <div className="rounded-[22px] border border-[color:var(--theme-border)] bg-white/72 px-4 py-3 text-xs leading-6 text-[color:var(--theme-muted-foreground)]">
+          현재 값:
+          {' '}
+          {`scale ${modelTransform.scale.toFixed(2)} / x ${modelTransform.positionX.toFixed(1)} / y ${modelTransform.positionY.toFixed(1)} / z ${modelTransform.positionZ.toFixed(1)}`}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function LightAdjustmentPanel() {
+  const lightTuning = useAppStore((state) => state.lightTuning)
+  const setLightTuning = useAppStore((state) => state.setLightTuning)
+  const resetLightTuning = useAppStore((state) => state.resetLightTuning)
+
+  const adjustmentItems = [
+    { key: 'keyAngle', label: 'Sun Angle', min: -180, max: 180, step: 1 },
+    { key: 'keyHeight', label: 'Sun Height', min: 4, max: 32, step: 0.5 },
+    { key: 'keyIntensity', label: 'Sun Intensity', min: 0, max: 2.4, step: 0.01 },
+    { key: 'fillAngle', label: 'Fill Angle', min: -180, max: 180, step: 1 },
+    { key: 'fillHeight', label: 'Fill Height', min: 2, max: 20, step: 0.5 },
+    { key: 'fillIntensity', label: 'Fill Intensity', min: 0, max: 3.2, step: 0.01 },
+    { key: 'exposure', label: 'Exposure', min: 0.4, max: 1.6, step: 0.01 },
+  ]
+
+  return (
+    <Card className="rounded-[34px]">
+      <CardHeader className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-2">
+            <Badge variant="secondary">Light Adjust</Badge>
+            <CardTitle className="text-[26px]">GLB Lighting</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" onClick={resetLightTuning}>
+            Reset
+          </Button>
+        </div>
+        <CardDescription className="text-[15px]">
+          Tune the dedicated light for the GLB facade, then send the values and we can hardcode
+          them.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {adjustmentItems.map((item) => (
+          <div key={item.key} className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-[color:var(--theme-foreground)]">{item.label}</p>
+              <p className="text-xs text-[color:var(--theme-subtle-foreground)]">
+                {Number(lightTuning[item.key]).toFixed(item.step < 1 ? 2 : 0)}
+              </p>
+            </div>
+            <Slider
+              min={item.min}
+              max={item.max}
+              step={item.step}
+              value={[lightTuning[item.key]]}
+              onValueChange={([nextValue]) => setLightTuning({ [item.key]: nextValue })}
+            />
+          </div>
+        ))}
+
+        <div className="rounded-[22px] border border-[color:var(--theme-border)] bg-white/72 px-4 py-3 text-xs leading-6 text-[color:var(--theme-muted-foreground)]">
+          {`sun ${lightTuning.keyAngle.toFixed(0)}deg / ${lightTuning.keyHeight.toFixed(1)}h / ${lightTuning.keyIntensity.toFixed(2)} | fill ${lightTuning.fillAngle.toFixed(0)}deg / ${lightTuning.fillHeight.toFixed(1)}h / ${lightTuning.fillIntensity.toFixed(2)} | exposure ${lightTuning.exposure.toFixed(2)}`}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ExperienceControls() {
+  const timeOfDay = useAppStore((state) => state.timeOfDay)
+  const setTimeOfDay = useAppStore((state) => state.setTimeOfDay)
+  const selectedHotspot = useAppStore((state) => state.selectedHotspot)
+  const setSelectedHotspot = useAppStore((state) => state.setSelectedHotspot)
+  const clearSelectedHotspot = useAppStore((state) => state.clearSelectedHotspot)
+
+  const highlightItems = useMemo(
+    () =>
+      TOUR_HIGHLIGHTS.map((item) => ({
+        ...item,
+        hotspot: findHotspot(item.id),
+      })).filter((item) => item.hotspot),
+    [],
+  )
+
+  const selectedHotspotCopy =
+    selectedHotspot && HOTSPOT_DETAILS[selectedHotspot.id]
+      ? HOTSPOT_DETAILS[selectedHotspot.id]
+      : null
+
+  return (
+    <div className="space-y-4">
+      <Card className="rounded-[34px]">
+        <CardHeader className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-2">
+              <Badge variant="secondary">광량 프리셋</Badge>
+              <CardTitle className="text-[26px]">시간대별 외관 인상</CardTitle>
+            </div>
+            <Badge>{formatTime(timeOfDay)}</Badge>
+          </div>
+          <CardDescription className="text-[15px]">{getTimeNarrative(timeOfDay)}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {TIME_PRESETS.map((preset) => (
+              <Button
+                key={preset.label}
+                variant={Math.abs(timeOfDay - preset.value) < 0.26 ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeOfDay(preset.value)}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+
+          <Slider
+            min={6}
+            max={21}
+            step={0.25}
+            value={[timeOfDay]}
+            onValueChange={([nextValue]) => setTimeOfDay(nextValue)}
+          />
+
+          <div className="flex justify-between text-xs text-[color:var(--theme-subtle-foreground)]">
+            <span>오전</span>
+            <span>정오</span>
+            <span>석양</span>
+            <span>야간</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-[34px]">
+        <CardHeader className="space-y-3">
+          <Badge variant="secondary">주요 포인트</Badge>
+          <CardTitle className="text-[26px]">외관에서 먼저 볼 부분</CardTitle>
+          <CardDescription className="text-[15px]">
+            고객이 가장 많이 확인하는 포인트만 간결하게 추려 배치했습니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {highlightItems.map(({ id, title, description, hotspot }) => {
+            const isActive = selectedHotspot?.id === id
+
+            return (
+              <button
+                key={id}
+                type="button"
+                className={cn(
+                  'flex w-full items-start justify-between gap-4 rounded-[24px] border p-4 text-left transition-all',
+                  isActive
+                    ? 'border-[color:var(--theme-border-strong)] bg-white shadow-[var(--theme-shadow-soft)]'
+                    : 'border-[color:var(--theme-border)] bg-[color:var(--theme-panel-muted)] hover:bg-white',
+                )}
+                onClick={() => setSelectedHotspot(hotspot)}
+              >
+                <div className="space-y-1">
+                  <p className="text-base font-medium text-[color:var(--theme-foreground)]">{title}</p>
+                  <p className="text-sm leading-6 text-[color:var(--theme-muted-foreground)]">
+                    {description}
+                  </p>
+                </div>
+                <MoveRight className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--theme-subtle-foreground)]" />
+              </button>
+            )
+          })}
+        </CardContent>
+      </Card>
+
+      {selectedHotspotCopy && (
+        <Card className="rounded-[34px]">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-2">
+                <Badge>{selectedHotspotCopy.floor}</Badge>
+                <CardTitle className="text-[26px]">{selectedHotspotCopy.title}</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={clearSelectedHotspot}>
+                닫기
+              </Button>
+            </div>
+            <CardDescription className="text-[15px]">{selectedHotspotCopy.summary}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[22px] border border-[color:var(--theme-border)] bg-white/72 p-4">
+                <p className="text-xs text-[color:var(--theme-subtle-foreground)]">주요 재료</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--theme-foreground)]">
+                  {selectedHotspotCopy.material}
+                </p>
+              </div>
+              <div className="rounded-[22px] border border-[color:var(--theme-border)] bg-white/72 p-4">
+                <p className="text-xs text-[color:var(--theme-subtle-foreground)]">확인 범위</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--theme-foreground)]">
+                  {selectedHotspotCopy.dimensions}
+                </p>
+              </div>
+            </div>
+
+            <ul className="space-y-2">
+              {selectedHotspotCopy.details.map((detail) => (
+                <li
+                  key={detail}
+                  className="rounded-[20px] border border-[color:var(--theme-border)] bg-white/70 px-4 py-3 text-sm leading-6 text-[color:var(--theme-muted-foreground)]"
+                >
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+function CalibrationSection() {
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-20 pt-2 sm:px-6 lg:px-8">
+      <div className="rounded-[40px] border border-[color:var(--theme-border)] bg-[color:var(--theme-panel)] p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl sm:p-6">
+        <div className="mb-6 space-y-2">
+          <Badge variant="secondary" className="w-fit">
+            Fine Tune
+          </Badge>
+          <h3 className="text-2xl font-semibold tracking-[-0.04em] text-[color:var(--theme-foreground)] sm:text-3xl">
+            Model And Lighting Calibration
+          </h3>
+          <p className="max-w-3xl text-sm leading-7 text-[color:var(--theme-muted-foreground)]">
+            These sliders live at the bottom only for alignment and lighting calibration, so they
+            can be removed later without changing the landing layout above.
+          </p>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-2">
+          <ModelAdjustmentPanel />
+          <LightAdjustmentPanel />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FullscreenExperienceHud({ isTouchDevice, onCloseFullscreen }) {
+  const navMode = useAppStore((state) => state.navMode)
+  const setNavMode = useAppStore((state) => state.setNavMode)
+  const timeOfDay = useAppStore((state) => state.timeOfDay)
+  const setTimeOfDay = useAppStore((state) => state.setTimeOfDay)
+
+  function activateWalkMode() {
+    setNavMode('walk')
+    window.dispatchEvent(new Event('experience-enter-walk'))
+  }
+
+  function activateOrbitMode() {
+    setNavMode('orbit')
+  }
+
+  const instructionText = isTouchDevice
+    ? navMode === 'walk'
+      ? '좌측 조이스틱으로 이동하고 우측 패드로 시야를 조절하세요.'
+      : '손가락 드래그로 외관을 회전하고 두 손가락으로 확대·축소할 수 있습니다.'
+    : navMode === 'walk'
+      ? '장면을 한 번 클릭한 뒤 마우스로 시야를 돌리고 WASD로 이동하세요. Esc로 마우스 잠금을 해제할 수 있습니다.'
+      : '마우스 드래그로 회전하고 휠로 확대·축소할 수 있습니다.'
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/14 bg-black/48 px-4 py-2 text-xs font-medium text-white backdrop-blur-xl">
+          <span className="h-2 w-2 rounded-full bg-[color:var(--theme-island-glow)]" />
+          몰입형 외관 체험
+        </div>
+
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/14 bg-black/48 p-1 backdrop-blur-xl">
+          <button
+            type="button"
+            className={cn(
+              'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              navMode === 'orbit' ? 'bg-white text-black' : 'text-white/78 hover:text-white',
+            )}
+            onClick={activateOrbitMode}
+          >
+            <Monitor className="h-4 w-4" />
+            Orbit
+          </button>
+          <button
+            type="button"
+            className={cn(
+              'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              navMode === 'walk' ? 'bg-white text-black' : 'text-white/78 hover:text-white',
+            )}
+            onClick={activateWalkMode}
+          >
+            <Gamepad2 className="h-4 w-4" />
+            Walk
+          </button>
+        </div>
+
+        <div className="pointer-events-auto flex items-center gap-2">
+          <div className="hidden rounded-full border border-white/12 bg-black/42 px-4 py-2 text-xs text-white/72 backdrop-blur-xl sm:block">
+            {isTouchDevice ? '모바일 체험 모드' : 'PC 체험 모드'}
+          </div>
+          <button
+            type="button"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/14 bg-black/48 text-white backdrop-blur-xl transition-colors hover:bg-black/58"
+            onClick={onCloseFullscreen}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="pointer-events-auto max-w-md rounded-[28px] border border-white/12 bg-black/46 p-5 text-white backdrop-blur-2xl">
+          <p className="text-xs uppercase tracking-[0.12em] text-white/58">Navigation</p>
+          <p className="mt-2 text-lg font-semibold">
+            {navMode === 'walk' ? '직접 걸어보는 모드' : '외관을 회전하며 보는 모드'}
+          </p>
+          <p className="mt-2 text-sm leading-7 text-white/78">{instructionText}</p>
+        </div>
+
+        <div className="pointer-events-auto flex flex-wrap items-center gap-2 rounded-[28px] border border-white/12 bg-black/42 p-3 backdrop-blur-2xl">
+          {TIME_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              className={cn(
+                'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                Math.abs(timeOfDay - preset.value) < 0.26
+                  ? 'bg-white text-black'
+                  : 'bg-white/8 text-white/76 hover:bg-white/14 hover:text-white',
+              )}
+              onClick={() => setTimeOfDay(preset.value)}
+            >
+              {preset.label === '야간' ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ExperienceSection({ viewer }) {
+  const stageRef = useRef(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const setSelectedHotspot = useAppStore((state) => state.setSelectedHotspot)
+  const setTimeOfDay = useAppStore((state) => state.setTimeOfDay)
+  const setNavMode = useAppStore((state) => state.setNavMode)
+  const setExperienceFullscreen = useAppStore((state) => state.setExperienceFullscreen)
+
+  useEffect(() => {
+    function updateTouchDevice() {
+      setIsTouchDevice('ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0)
+    }
+
+    updateTouchDevice()
+    window.addEventListener('resize', updateTouchDevice)
+    return () => window.removeEventListener('resize', updateTouchDevice)
+  }, [])
+
+  useEffect(() => {
+    function handleFullscreenChange() {
+      const fullscreenActive = document.fullscreenElement === stageRef.current
+      setIsFullscreen(fullscreenActive)
+      setExperienceFullscreen(fullscreenActive)
+
+      if (!fullscreenActive) {
+        setNavMode('orbit')
+      }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [setExperienceFullscreen, setNavMode])
+
+  async function toggleFullscreen() {
+    const stageNode = stageRef.current
+    if (!stageNode) return
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+        return
+      }
+
+      await stageNode.requestFullscreen?.()
+    } catch (error) {
+      console.error('Failed to toggle fullscreen viewer', error)
+    }
+  }
+
+  function openCuratedView(id, hour) {
+    if (typeof hour === 'number') {
+      setTimeOfDay(hour)
+    }
+
+    const hotspot = findHotspot(id)
+    if (hotspot) {
+      setSelectedHotspot(hotspot)
+    }
+  }
+
+  return (
+    <section id="experience" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-20 sm:px-6 lg:px-8">
+      <div className="space-y-6">
+        <div className="tour-island">
+          <div className="tour-island__shell">
+            <span className="tour-island__pulse" />
+            <span className="text-sm font-medium text-white">{TOUR_CONTENT.islandLabel}</span>
+            <span className="hidden text-sm text-white/66 lg:inline">{TOUR_CONTENT.liveStatus}</span>
+          </div>
+
+          <div className="space-y-3 px-1 pt-6">
+            <h2 className="max-w-4xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+              {TOUR_CONTENT.islandTitle}
+            </h2>
+            <p className="max-w-3xl text-sm leading-7 text-white/78 sm:text-[15px]">
+              {TOUR_CONTENT.islandDescription}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 px-1 pt-5 sm:flex-row">
+            <Button
+              size="lg"
+              className="border-white/12 bg-white text-[color:var(--theme-accent)] hover:bg-white/94"
+              onClick={() => openCuratedView('front-approach', 10.5)}
+            >
+              <Play className="h-4 w-4 fill-current" />
+              지금 둘러보기
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-white/14 bg-white/8 text-white hover:bg-white/14"
+              onClick={toggleFullscreen}
+            >
+              <Maximize2 className="h-4 w-4" />
+              전체화면으로 보기
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+          <ExperienceControls />
+
+          <div ref={stageRef} className="tour-stage" id="tour-stage">
+            <div className="tour-stage__chrome">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-[color:var(--theme-subtle-foreground)]">
+                  {TOUR_CONTENT.stageEyebrow}
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-base font-medium text-[color:var(--theme-foreground)]">
+                    {TOUR_CONTENT.stageTitle}
+                  </p>
+                  <Badge variant="secondary">실시간 4D 체험</Badge>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => openCuratedView('double-height-glass', 18.25)}>
+                  <SunMedium className="h-4 w-4" />
+                  석양 보기
+                </Button>
+                <Button variant="outline" size="sm" onClick={toggleFullscreen}>
+                  <Maximize2 className="h-4 w-4" />
+                  {isFullscreen ? '전체화면 닫기' : '전체화면'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="tour-stage__description px-6 pt-2">
+              <p className="max-w-2xl text-sm leading-7 text-[color:var(--theme-muted-foreground)]">
+                {TOUR_CONTENT.stageDescription}
+              </p>
+            </div>
+
+            <div className="tour-stage__viewer">
+              <div className="relative h-full">
+                {viewer}
+                {isFullscreen && (
+                  <>
+                    <FullscreenExperienceHud
+                      isTouchDevice={isTouchDevice}
+                      onCloseFullscreen={toggleFullscreen}
+                    />
+                    <VirtualJoystick />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default function HUD({ viewer }) {
+  return (
+    <div className="min-h-screen bg-transparent text-[color:var(--theme-foreground)]">
+      <SiteHeader />
+      <HeroSection />
+      <OverviewSection />
+      <SellingPointsSection />
+      <ExperienceSection viewer={viewer} />
+      <CalibrationSection />
+    </div>
   )
 }
