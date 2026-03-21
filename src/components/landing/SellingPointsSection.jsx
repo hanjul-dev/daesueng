@@ -1,20 +1,14 @@
 import { Building2, CarFront, MapPinned } from 'lucide-react'
 import { PROPERTY_CONTENT, SELLING_POINTS } from '../../content/property'
-import { cn } from '../../lib/utils'
 import { Badge } from '../ui/badge'
 import { Card, CardDescription, CardHeader, CardTitle } from '../ui/card'
 
 const POINT_ICONS = [Building2, MapPinned, CarFront]
 
-export default function SellingPointsSection({ isDesktopLayout }) {
+export default function SellingPointsSection() {
   return (
     <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16">
-      <div
-        className={cn(
-          'mb-6 flex flex-col gap-3',
-          isDesktopLayout && 'lg:flex-row lg:items-end lg:justify-between',
-        )}
-      >
+      <div className="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-3">
           <Badge variant="secondary">외관 핵심 요약</Badge>
           <h2 className="text-3xl font-semibold tracking-[-0.04em] text-[color:var(--theme-foreground)] sm:text-4xl">
@@ -26,7 +20,7 @@ export default function SellingPointsSection({ isDesktopLayout }) {
         </p>
       </div>
 
-      <div className={cn('grid gap-4', isDesktopLayout ? 'grid-cols-3' : 'md:grid-cols-3')}>
+      <div className="grid gap-4 lg:grid-cols-3">
         {SELLING_POINTS.map((point, index) => {
           const Icon = POINT_ICONS[index]
 

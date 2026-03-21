@@ -1,22 +1,14 @@
 import { OVERVIEW_CARDS, PROPERTY_CONTENT } from '../../content/property'
-import { cn } from '../../lib/utils'
 import { Badge } from '../ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 
-export default function OverviewSection({ isDesktopLayout }) {
+export default function OverviewSection() {
   return (
     <section
       id="overview"
       className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16"
     >
-      <div
-        className={cn(
-          'grid gap-5',
-          isDesktopLayout
-            ? 'grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]'
-            : 'md:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]',
-        )}
-      >
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
         <Card className="rounded-[40px]">
           <CardHeader className="space-y-4">
             <Badge variant="secondary">매물 소개</Badge>

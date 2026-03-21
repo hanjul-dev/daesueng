@@ -1,6 +1,5 @@
 import { ArrowRight, CarFront, House, TreePine } from 'lucide-react'
 import { PROPERTY_CONTENT, PROPERTY_MEDIA } from '../../content/property'
-import { cn } from '../../lib/utils'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import PropertyShot from './PropertyShot'
@@ -8,17 +7,10 @@ import { scrollToSection } from './landingUtils'
 
 const HERO_ICONS = [House, TreePine, CarFront]
 
-export default function HeroSection({ isDesktopLayout }) {
+export default function HeroSection() {
   return (
     <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pt-16 lg:px-8 lg:pb-16">
-      <div
-        className={cn(
-          'grid gap-6',
-          isDesktopLayout
-            ? 'grid-cols-[minmax(0,1.02fr)_minmax(420px,0.98fr)] items-start lg:gap-8'
-            : 'md:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] md:items-start lg:gap-8',
-        )}
-      >
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(380px,0.98fr)] xl:items-start lg:gap-8">
         <div className="space-y-8">
           <div className="space-y-5">
             <Badge variant="secondary">{PROPERTY_CONTENT.badge}</Badge>
@@ -32,7 +24,7 @@ export default function HeroSection({ isDesktopLayout }) {
             </div>
           </div>
 
-          <div className={cn('flex flex-col gap-3', isDesktopLayout && 'sm:flex-row')}>
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Button size="lg" onClick={() => scrollToSection('overview')}>
               {PROPERTY_CONTENT.primaryAction}
               <ArrowRight className="h-4 w-4" />
@@ -42,19 +34,17 @@ export default function HeroSection({ isDesktopLayout }) {
             </Button>
           </div>
 
-          <div className={cn('grid gap-3', isDesktopLayout ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3')}>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {PROPERTY_CONTENT.heroFacts.map((fact, index) => {
               const Icon = HERO_ICONS[index]
+              const isLastCard = index === PROPERTY_CONTENT.heroFacts.length - 1
 
               return (
                 <div
                   key={fact.label}
-                  className={cn(
-                    'rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl',
-                    index === PROPERTY_CONTENT.heroFacts.length - 1 && !isDesktopLayout
-                      ? 'col-span-2 sm:col-span-1'
-                      : '',
-                  )}
+                  className={`rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl ${
+                    isLastCard ? 'col-span-2 sm:col-span-1' : ''
+                  }`}
                 >
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--theme-accent-muted)]">
                     <Icon className="h-5 w-5 text-[color:var(--theme-foreground)]" />
@@ -69,7 +59,7 @@ export default function HeroSection({ isDesktopLayout }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {PROPERTY_MEDIA.map((item) => (
             <PropertyShot
               key={item.title}
