@@ -1,4 +1,3 @@
-import { cn } from '../../lib/utils'
 import CalibrationSection from './CalibrationSection'
 import ExperienceSection from './ExperienceSection'
 import HeroSection from './HeroSection'
@@ -11,12 +10,7 @@ export default function PropertyLanding({ viewer }) {
   const isDesktopLayout = useDesktopLayout()
 
   return (
-    <div
-      className={cn(
-        'min-h-screen w-full bg-transparent text-[color:var(--theme-foreground)]',
-        isDesktopLayout && 'min-w-[1180px]',
-      )}
-    >
+    <div className="min-h-screen w-full bg-transparent text-[color:var(--theme-foreground)]">
       <SiteHeader isDesktopLayout={isDesktopLayout} />
       <HeroSection isDesktopLayout={isDesktopLayout} />
       <OverviewSection isDesktopLayout={isDesktopLayout} />
