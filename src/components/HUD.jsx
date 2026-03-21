@@ -151,7 +151,7 @@ function SiteHeader() {
 function HeroSection() {
   return (
     <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pt-16 lg:px-8 lg:pb-16">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(360px,0.98fr)] lg:items-start lg:gap-8">
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] md:items-start lg:gap-8">
         <div className="space-y-8">
           <div className="space-y-5">
             <Badge variant="secondary">{PROPERTY_CONTENT.badge}</Badge>
@@ -175,14 +175,17 @@ function HeroSection() {
             </Button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {PROPERTY_CONTENT.heroFacts.map((fact, index) => {
               const Icon = HERO_ICONS[index]
 
               return (
                 <div
                   key={fact.label}
-                  className="rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl"
+                  className={cn(
+                    'rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl',
+                    index === PROPERTY_CONTENT.heroFacts.length - 1 ? 'col-span-2 sm:col-span-1' : '',
+                  )}
                 >
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--theme-accent-muted)]">
                     <Icon className="h-5 w-5 text-[color:var(--theme-foreground)]" />
@@ -197,7 +200,7 @@ function HeroSection() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
           {PROPERTY_MEDIA.map((item) => (
             <PropertyShot
               key={item.title}
@@ -217,7 +220,7 @@ function HeroSection() {
 function OverviewSection() {
   return (
     <section id="overview" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16">
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
         <Card className="rounded-[40px]">
           <CardHeader className="space-y-4">
             <Badge variant="secondary">매물 소개</Badge>
@@ -273,7 +276,7 @@ function SellingPointsSection() {
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {SELLING_POINTS.map((point, index) => {
           const Icon = pointIcons[index]
 
@@ -586,26 +589,36 @@ function ExperienceControls() {
 }
 
 function CalibrationSection() {
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
     <section className="mx-auto max-w-7xl px-4 pb-20 pt-2 sm:px-6 lg:px-8">
       <div className="rounded-[40px] border border-[color:var(--theme-border)] bg-[color:var(--theme-panel)] p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl sm:p-6">
-        <div className="mb-6 space-y-2">
-          <Badge variant="secondary" className="w-fit">
-            Fine Tune
-          </Badge>
-          <h3 className="text-2xl font-semibold tracking-[-0.04em] text-[color:var(--theme-foreground)] sm:text-3xl">
-            Model And Lighting Calibration
-          </h3>
-          <p className="max-w-3xl text-sm leading-7 text-[color:var(--theme-muted-foreground)]">
-            These sliders live at the bottom only for alignment and lighting calibration, so they
-            can be removed later without changing the landing layout above.
-          </p>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <Badge variant="secondary" className="w-fit">
+              Fine Tune
+            </Badge>
+            <h3 className="text-2xl font-semibold tracking-[-0.04em] text-[color:var(--theme-foreground)] sm:text-3xl">
+              Model And Lighting Calibration
+            </h3>
+            <p className="max-w-3xl text-sm leading-7 text-[color:var(--theme-muted-foreground)]">
+              These sliders live at the bottom only for alignment and lighting calibration, so they
+              can be removed later without changing the landing layout above.
+            </p>
+          </div>
+
+          <Button variant="outline" size="sm" onClick={() => setIsOpen((open) => !open)}>
+            {isOpen ? '보정 패널 접기' : '보정 패널 열기'}
+          </Button>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <ModelAdjustmentPanel />
-          <LightAdjustmentPanel />
-        </div>
+        {isOpen && (
+          <div className="grid gap-4 xl:grid-cols-2">
+            <ModelAdjustmentPanel />
+            <LightAdjustmentPanel />
+          </div>
+        )}
       </div>
     </section>
   )
@@ -814,10 +827,12 @@ function ExperienceSection({ viewer }) {
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-          <ExperienceControls />
+        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]">
+          <div className="order-2 lg:order-1">
+            <ExperienceControls />
+          </div>
 
-          <div ref={stageRef} className="tour-stage" id="tour-stage">
+          <div ref={stageRef} className="tour-stage order-1 lg:order-2" id="tour-stage">
             <div className="tour-stage__chrome">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[color:var(--theme-subtle-foreground)]">
