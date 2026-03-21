@@ -23,6 +23,7 @@ export default function PropertyLanding({ viewer }) {
       <SellingPointsSection isDesktopLayout={isDesktopLayout} />
       <ExperienceSection viewer={viewer} isDesktopLayout={isDesktopLayout} />
       <CalibrationSection />
+      <div aria-hidden="true" className="h-16 sm:h-20 lg:h-28" />
     </div>
   )
 }

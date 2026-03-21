@@ -8,13 +8,13 @@ const DEFAULT_MODEL_TRANSFORM = {
 }
 
 const DEFAULT_LIGHT_TUNING = {
-  keyAngle: 49,
-  keyHeight: 20,
-  keyIntensity: 0.52,
-  fillAngle: -11,
-  fillHeight: 8,
-  fillIntensity: 1.35,
-  exposure: 0.92,
+  keyAngle: 28,
+  keyHeight: 29.5,
+  keyIntensity: 1.87,
+  fillAngle: 141,
+  fillHeight: 9.5,
+  fillIntensity: 2.12,
+  exposure: 1.6,
 }
 
 function clampTime(hour) {
