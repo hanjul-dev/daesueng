@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -30,6 +30,13 @@ function HotspotMarker({ hotspot, index }) {
   const setSelectedHotspot = useAppStore((state) => state.setSelectedHotspot)
   const isSelected = selectedHotspot?.id === hotspot.id
   const payload = buildHotspotPayload(hotspot)
+
+  useEffect(
+    () => () => {
+      document.body.style.cursor = 'default'
+    },
+    [],
+  )
 
   useFrame((frameState) => {
     if (!markerRef.current) return

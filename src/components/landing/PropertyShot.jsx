@@ -4,6 +4,7 @@ import { Badge } from '../ui/badge'
 
 export default function PropertyShot({ tone, eyebrow, title, description, className }) {
   const photoAsset = PROPERTY_MEDIA_ASSETS[tone]
+  const isPrimaryPhoto = tone === 'hero'
 
   return (
     <article className={cn('photo-surface', `photo-surface--${tone}`, className)}>
@@ -14,6 +15,10 @@ export default function PropertyShot({ tone, eyebrow, title, description, classN
             alt={title}
             className="photo-surface__image"
             style={{ objectPosition: photoAsset.position }}
+            loading={isPrimaryPhoto ? 'eager' : 'lazy'}
+            fetchPriority={isPrimaryPhoto ? 'high' : 'low'}
+            decoding="async"
+            sizes={isPrimaryPhoto ? '(max-width: 768px) 100vw, 60vw' : '(max-width: 768px) 100vw, 30vw'}
           />
           <div className="photo-surface__overlay" />
         </>

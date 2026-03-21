@@ -3,9 +3,18 @@ import { useProgress } from '@react-three/drei'
 import useAppStore from '../store/useAppStore'
 
 function getLoadingMessage(progress) {
-  if (progress < 30) return '외관 매스와 기본 장면을 먼저 준비하고 있습니다.'
-  if (progress < 65) return '재료감과 주요 입면 요소를 순서대로 불러오고 있습니다.'
-  if (progress < 90) return '광량과 그림자 균형을 정리해 보기 편한 상태로 맞추고 있습니다.'
+  if (progress < 30) {
+    return '외관 매스와 기본 장면을 먼저 준비하고 있습니다.'
+  }
+
+  if (progress < 65) {
+    return '재료감과 주요 입면 요소를 순서대로 불러오고 있습니다.'
+  }
+
+  if (progress < 90) {
+    return '광량과 그림자 균형을 정리해 보기 편한 상태로 맞추고 있습니다.'
+  }
+
   return '외관 프리뷰가 거의 준비되었습니다.'
 }
 
@@ -15,24 +24,33 @@ export default function LoadingScreen() {
   const setLoadingStage = useAppStore((state) => state.setLoadingStage)
   const setLoaded = useAppStore((state) => state.setLoaded)
   const { progress, active, loaded, total } = useProgress()
-  const resolvedProgress = total === 0 ? 100 : progress
+  const hasStartedLoading = active || total > 0 || progress > 0
+  const resolvedProgress = hasStartedLoading ? progress : 0
 
   useEffect(() => {
+    if (!hasStartedLoading) {
+      return
+    }
+
     setLoadingProgress(resolvedProgress)
 
-    if (resolvedProgress < 30) setLoadingStage('shell')
-    else if (resolvedProgress < 75) setLoadingStage('materials')
-    else if (resolvedProgress < 100) setLoadingStage('lighting')
-  }, [resolvedProgress, setLoadingProgress, setLoadingStage])
+    if (resolvedProgress < 30) {
+      setLoadingStage('shell')
+    } else if (resolvedProgress < 75) {
+      setLoadingStage('materials')
+    } else if (resolvedProgress < 100) {
+      setLoadingStage('lighting')
+    }
+  }, [hasStartedLoading, resolvedProgress, setLoadingProgress, setLoadingStage])
 
   useEffect(() => {
-    if (resolvedProgress >= 100 && !active) {
+    if (hasStartedLoading && resolvedProgress >= 100 && !active) {
       const timeout = window.setTimeout(() => setLoaded(), 360)
       return () => window.clearTimeout(timeout)
     }
 
     return undefined
-  }, [active, resolvedProgress, setLoaded])
+  }, [active, hasStartedLoading, resolvedProgress, setLoaded])
 
   const progressLabel = useMemo(() => Math.round(resolvedProgress), [resolvedProgress])
 
@@ -54,7 +72,8 @@ export default function LoadingScreen() {
           외관 프리뷰를 준비하고 있습니다
         </h1>
         <p className="mt-4 text-[15px] leading-7 text-[color:var(--theme-muted-foreground)]">
-          정면 인상, 커튼월 비례, 차고 접근과 공원 방향 조망을 편안하게 확인하실 수 있도록 장면을 정리하고 있습니다.
+          정면 인상, 커튼월 비례, 차고 접근과 공원 방향 조망을 편안하게 확인하실 수 있도록
+          장면을 정리하고 있습니다.
         </p>
 
         <div className="mt-7 h-1.5 w-full overflow-hidden rounded-full bg-black/6">
