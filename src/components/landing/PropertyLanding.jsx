@@ -1,18 +1,27 @@
+import { cn } from '../../lib/utils'
 import CalibrationSection from './CalibrationSection'
 import ExperienceSection from './ExperienceSection'
 import HeroSection from './HeroSection'
 import OverviewSection from './OverviewSection'
 import SellingPointsSection from './SellingPointsSection'
 import SiteHeader from './SiteHeader'
+import useDesktopLayout from './useDesktopLayout'
 
 export default function PropertyLanding({ viewer }) {
+  const isDesktopLayout = useDesktopLayout()
+
   return (
-    <div className="min-h-screen bg-transparent text-[color:var(--theme-foreground)]">
-      <SiteHeader />
-      <HeroSection />
-      <OverviewSection />
-      <SellingPointsSection />
-      <ExperienceSection viewer={viewer} />
+    <div
+      className={cn(
+        'min-h-screen w-full bg-transparent text-[color:var(--theme-foreground)]',
+        isDesktopLayout && 'min-w-[1180px]',
+      )}
+    >
+      <SiteHeader isDesktopLayout={isDesktopLayout} />
+      <HeroSection isDesktopLayout={isDesktopLayout} />
+      <OverviewSection isDesktopLayout={isDesktopLayout} />
+      <SellingPointsSection isDesktopLayout={isDesktopLayout} />
+      <ExperienceSection viewer={viewer} isDesktopLayout={isDesktopLayout} />
       <CalibrationSection />
     </div>
   )

@@ -1,6 +1,7 @@
 import { Maximize2, Play, SunMedium } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { TOUR_CONTENT } from '../../content/property'
+import { cn } from '../../lib/utils'
 import useAppStore from '../../store/useAppStore'
 import VirtualJoystick from '../VirtualJoystick'
 import { Badge } from '../ui/badge'
@@ -9,7 +10,7 @@ import ExperienceControls from './ExperienceControls'
 import FullscreenExperienceHud from './FullscreenExperienceHud'
 import { findHotspot } from './landingUtils'
 
-export default function ExperienceSection({ viewer }) {
+export default function ExperienceSection({ viewer, isDesktopLayout }) {
   const stageRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
@@ -99,7 +100,7 @@ export default function ExperienceSection({ viewer }) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 px-1 pt-5 sm:flex-row">
+          <div className={cn('flex flex-col gap-3 px-1 pt-5', isDesktopLayout && 'sm:flex-row')}>
             <Button
               size="lg"
               className="border-white/12 bg-white text-[color:var(--theme-accent)] hover:bg-white/94"
@@ -120,12 +121,23 @@ export default function ExperienceSection({ viewer }) {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]">
-          <div className="order-2 lg:order-1">
+        <div
+          className={cn(
+            'grid gap-6',
+            isDesktopLayout
+              ? 'grid-cols-[340px_minmax(0,1fr)]'
+              : 'lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]',
+          )}
+        >
+          <div className={cn(isDesktopLayout ? 'order-1' : 'order-2 lg:order-1')}>
             <ExperienceControls />
           </div>
 
-          <div ref={stageRef} className="tour-stage order-1 lg:order-2" id="tour-stage">
+          <div
+            ref={stageRef}
+            className={cn('tour-stage', isDesktopLayout ? 'order-2' : 'order-1 lg:order-2')}
+            id="tour-stage"
+          >
             <div className="tour-stage__chrome">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[color:var(--theme-subtle-foreground)]">
