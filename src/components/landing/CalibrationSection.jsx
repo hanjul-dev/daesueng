@@ -24,7 +24,8 @@ export default function CalibrationSection() {
               Model And Lighting Calibration
             </h3>
             <p className="max-w-3xl text-sm leading-7 text-[color:var(--theme-muted-foreground)]">
-              정렬과 조명 보정은 최하단에만 두고, 운영 화면에서는 플래그로 숨길 수 있게 분리했습니다.
+              정렬과 조명 보정은 최하단에만 두고, 운영 화면에서는 플래그로 숨길 수 있게
+              분리했습니다.
             </p>
           </div>
 
