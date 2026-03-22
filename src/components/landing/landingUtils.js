@@ -1,4 +1,4 @@
-import { HOTSPOTS } from '../Hotspots'
+import { HOTSPOTS } from '../../content/hotspots'
 
 export function scrollToSection(sectionId) {
   if (typeof document === 'undefined') {

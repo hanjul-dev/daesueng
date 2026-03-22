@@ -3,32 +3,17 @@ import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import useAppStore from '../store/useAppStore'
-import { HOTSPOT_DETAILS } from '../content/property'
-
-const HOTSPOTS = [
-  { id: 'front-approach', position: [0.4, -1.4, -9.6] },
-  { id: 'garage-access', position: [-6.2, -1.1, -7] },
-  { id: 'double-height-glass', position: [4.8, 2.8, -7.4] },
-  { id: 'balcony-line', position: [-1.8, 1.9, -9.2] },
-  { id: 'gable-wing', position: [-7.7, 4.2, -0.8] },
-]
-
-function buildHotspotPayload(hotspot) {
-  const copy = HOTSPOT_DETAILS[hotspot.id]
-  return {
-    ...hotspot,
-    floor: copy?.floor ?? 'Exterior',
-    title: copy?.title ?? hotspot.id,
-    summary: copy?.summary ?? '',
-  }
-}
+import { HOTSPOTS, buildHotspotPayload, findClosestHotspot } from '../content/hotspots'
 
 function HotspotMarker({ hotspot, index }) {
   const markerRef = useRef()
   const [hovered, setHovered] = useState(false)
+  const navMode = useAppStore((state) => state.navMode)
   const selectedHotspot = useAppStore((state) => state.selectedHotspot)
+  const nearbyHotspot = useAppStore((state) => state.nearbyHotspot)
   const setSelectedHotspot = useAppStore((state) => state.setSelectedHotspot)
   const isSelected = selectedHotspot?.id === hotspot.id
+  const isNearby = nearbyHotspot?.id === hotspot.id && navMode === 'walk'
   const payload = buildHotspotPayload(hotspot)
 
   useEffect(
@@ -44,7 +29,7 @@ function HotspotMarker({ hotspot, index }) {
       hotspot.position[1] + Math.sin(frameState.clock.elapsedTime * 1.35 + index) * 0.08
   })
 
-  const accentColor = isSelected ? '#111111' : hovered ? '#3f3f46' : '#71717a'
+  const accentColor = isSelected ? '#111111' : isNearby ? '#1d4ed8' : hovered ? '#3f3f46' : '#71717a'
 
   return (
     <group ref={markerRef} position={hotspot.position}>
@@ -84,10 +69,10 @@ function HotspotMarker({ hotspot, index }) {
         />
       </mesh>
 
-      {(hovered || isSelected) && (
-        <Html center position={[0, 0.58, 0]} distanceFactor={16} style={{ pointerEvents: 'none' }}>
+      {(hovered || isSelected || isNearby) && (
+        <Html center position={[0, isNearby ? 0.92 : 0.58, 0]} distanceFactor={16} style={{ pointerEvents: 'none' }}>
           <div className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-medium text-zinc-900 shadow-[var(--theme-shadow-soft)]">
-            {payload.title}
+            {isNearby ? `F 상세 보기 · ${payload.title}` : payload.title}
           </div>
         </Html>
       )}
@@ -96,8 +81,82 @@ function HotspotMarker({ hotspot, index }) {
 }
 
 export default function Hotspots() {
+  const modelMode = useAppStore((state) => state.modelMode)
+  const navMode = useAppStore((state) => state.navMode)
+  const hotspotOverlayEnabled = useAppStore((state) => state.hotspotOverlayEnabled)
+  const explorerLocalPosition = useAppStore((state) => state.explorer.localPosition)
+  const modelTransform = useAppStore((state) => state.modelTransform)
+  const nearbyHotspot = useAppStore((state) => state.nearbyHotspot)
+  const setSelectedHotspot = useAppStore((state) => state.setSelectedHotspot)
+  const setNearbyHotspot = useAppStore((state) => state.setNearbyHotspot)
+  const clearNearbyHotspot = useAppStore((state) => state.clearNearbyHotspot)
+  const previousNearbyIdRef = useRef(null)
+
+  useEffect(() => {
+    if (hotspotOverlayEnabled || navMode === 'walk') {
+      return undefined
+    }
+
+    clearNearbyHotspot()
+    previousNearbyIdRef.current = null
+    return undefined
+  }, [clearNearbyHotspot, hotspotOverlayEnabled, navMode])
+
+  useEffect(() => {
+    if (!hotspotOverlayEnabled || navMode !== 'walk') {
+      return undefined
+    }
+
+    function handleKeyDown(event) {
+      if (event.code !== 'KeyF' || !nearbyHotspot) {
+        return
+      }
+
+      event.preventDefault()
+      setSelectedHotspot(nearbyHotspot)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [hotspotOverlayEnabled, navMode, nearbyHotspot, setSelectedHotspot])
+
+  useFrame(() => {
+    if (!hotspotOverlayEnabled || navMode !== 'walk') {
+      if (previousNearbyIdRef.current !== null) {
+        previousNearbyIdRef.current = null
+        clearNearbyHotspot()
+      }
+      return
+    }
+
+    const nextHotspot = findClosestHotspot(explorerLocalPosition)
+    const nextHotspotId = nextHotspot?.id ?? null
+
+    if (previousNearbyIdRef.current === nextHotspotId) {
+      return
+    }
+
+    previousNearbyIdRef.current = nextHotspotId
+    if (nextHotspot) {
+      setNearbyHotspot(nextHotspot)
+    } else {
+      clearNearbyHotspot()
+    }
+  })
+
+  if (!hotspotOverlayEnabled || modelMode !== 'glb') {
+    return null
+  }
+
   return (
-    <group>
+    <group
+      position={[
+        modelTransform.positionX,
+        modelTransform.positionY,
+        modelTransform.positionZ,
+      ]}
+      scale={modelTransform.scale}
+    >
       {HOTSPOTS.map((hotspot, index) => (
         <HotspotMarker key={hotspot.id} hotspot={hotspot} index={index} />
       ))}

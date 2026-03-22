@@ -150,7 +150,6 @@ function OrbitNavigator() {
 function SceneContents() {
   const timeOfDay = useAppStore((state) => state.timeOfDay)
   const isLoading = useAppStore((state) => state.isLoading)
-  const modelMode = useAppStore((state) => state.modelMode)
   const navMode = useAppStore((state) => state.navMode)
   const isNight = timeOfDay < 5 || timeOfDay > 19
 
@@ -184,7 +183,7 @@ function SceneContents() {
       <Environment3D />
       <ExplorerAvatar />
       <RendererExposureUpdater />
-      {modelMode !== 'glb' && <Hotspots />}
+      <Hotspots />
       {navMode === 'orbit' && <OrbitNavigator />}
 
       <FirstPersonController />

@@ -82,6 +82,22 @@ const useAppStore = create((set) => ({
   selectedHotspot: null,
   setSelectedHotspot: (selectedHotspot) => set({ selectedHotspot }),
   clearSelectedHotspot: () => set({ selectedHotspot: null }),
+  hotspotOverlayEnabled: false,
+  setHotspotOverlayEnabled: (hotspotOverlayEnabled) =>
+    set((state) => ({
+      hotspotOverlayEnabled,
+      selectedHotspot: hotspotOverlayEnabled ? state.selectedHotspot : null,
+      nearbyHotspot: hotspotOverlayEnabled ? state.nearbyHotspot : null,
+    })),
+  toggleHotspotOverlay: () =>
+    set((state) => ({
+      hotspotOverlayEnabled: !state.hotspotOverlayEnabled,
+      selectedHotspot: !state.hotspotOverlayEnabled ? state.selectedHotspot : null,
+      nearbyHotspot: !state.hotspotOverlayEnabled ? state.nearbyHotspot : null,
+    })),
+  nearbyHotspot: null,
+  setNearbyHotspot: (nearbyHotspot) => set({ nearbyHotspot }),
+  clearNearbyHotspot: () => set({ nearbyHotspot: null }),
 
   cameraPosition: [18, 12, 23],
   setCameraPosition: (cameraPosition) => set({ cameraPosition }),

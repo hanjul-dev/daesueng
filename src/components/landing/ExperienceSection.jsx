@@ -14,6 +14,7 @@ export default function ExperienceSection({ viewer }) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const setSelectedHotspot = useAppStore((state) => state.setSelectedHotspot)
+  const setHotspotOverlayEnabled = useAppStore((state) => state.setHotspotOverlayEnabled)
   const setTimeOfDay = useAppStore((state) => state.setTimeOfDay)
   const setNavMode = useAppStore((state) => state.setNavMode)
   const setExperienceFullscreen = useAppStore((state) => state.setExperienceFullscreen)
@@ -76,6 +77,7 @@ export default function ExperienceSection({ viewer }) {
 
     const hotspot = findHotspot(id)
     if (hotspot) {
+      setHotspotOverlayEnabled(true)
       setSelectedHotspot(hotspot)
     }
   }
