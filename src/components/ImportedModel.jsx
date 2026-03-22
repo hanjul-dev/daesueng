@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { getFloorViewConfig } from '../content/floorSections'
 import useAppStore from '../store/useAppStore'
 
-const DEFAULT_MODEL_URL = '/models/daeseung-villa-2k.glb'
+const DEFAULT_MODEL_URL = `${import.meta.env.BASE_URL}models/daeseung-villa-2k.glb`
 const SITE_KEEP_BOUNDS = {
   maxHorizontalOffsetX: 140,
   minHorizontalOffsetZ: -80,
