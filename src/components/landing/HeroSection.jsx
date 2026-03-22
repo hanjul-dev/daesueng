@@ -13,7 +13,7 @@ export default function HeroSection() {
   return (
     <section className="layout-shell layout-shell--wide pb-10 pt-10 sm:pt-16 lg:pb-16 xl:pb-20">
       <div className="grid grid-cols-12 gap-4 lg:gap-5 xl:gap-6 2xl:gap-7">
-        <div className="col-span-12 space-y-8 xl:col-span-5 xl:self-center xl:space-y-10 xl:pr-6">
+        <div className="col-span-12 space-y-8 xl:col-span-6 xl:self-center xl:space-y-10 xl:pr-8">
           <div className="space-y-5">
             <Badge variant="secondary">{PROPERTY_CONTENT.badge}</Badge>
             <div className="space-y-4">
@@ -42,7 +42,7 @@ export default function HeroSection() {
           eyebrow={primaryMedia.eyebrow}
           title={primaryMedia.title}
           description={primaryMedia.description}
-          className="col-span-12 xl:col-span-7 min-h-[360px] sm:min-h-[460px] xl:min-h-[540px] 2xl:min-h-[620px]"
+          className="col-span-12 xl:col-span-6 min-h-[360px] sm:min-h-[460px] xl:min-h-[540px] 2xl:min-h-[620px]"
         />
 
         {PROPERTY_CONTENT.heroFacts.map((fact, index) => {

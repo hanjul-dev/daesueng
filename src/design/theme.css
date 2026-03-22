@@ -3,8 +3,8 @@
     'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     'Noto Sans KR', sans-serif;
   --layout-gutter: clamp(1rem, 0.72rem + 0.9vw, 2.5rem);
-  --layout-shell-max: 88rem;
-  --layout-shell-wide-max: 100rem;
+  --layout-shell-max: 84rem;
+  --layout-shell-wide-max: 96rem;
   --theme-page-background: #f3f0ea;
   --theme-page-background-strong: #fcfbf8;
   --theme-panel: rgba(255, 255, 255, 0.8);
@@ -37,21 +37,21 @@
 
 @media (min-width: 1280px) {
   :root {
-    --layout-shell-max: 96rem;
-    --layout-shell-wide-max: 112rem;
+    --layout-shell-max: 90rem;
+    --layout-shell-wide-max: 104rem;
   }
 }
 
 @media (min-width: 1680px) {
   :root {
-    --layout-shell-max: 104rem;
-    --layout-shell-wide-max: 124rem;
+    --layout-shell-max: 96rem;
+    --layout-shell-wide-max: 112rem;
   }
 }
 
 @media (min-width: 2200px) {
   :root {
-    --layout-shell-max: 112rem;
-    --layout-shell-wide-max: 136rem;
+    --layout-shell-max: 100rem;
+    --layout-shell-wide-max: 118rem;
   }
 }
