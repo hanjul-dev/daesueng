@@ -17,6 +17,12 @@ export default function VirtualJoystick() {
   const touchIdRef = useRef(null)
   const lookTouchIdRef = useRef(null)
 
+  const setElevationInput = useCallback((nextValue) => {
+    if (window.__elevationInput !== undefined) {
+      window.__elevationInput = nextValue
+    }
+  }, [])
+
   // Detect mobile/touch device
   useEffect(() => {
     const check = () => {
@@ -31,9 +37,11 @@ export default function VirtualJoystick() {
   useEffect(() => {
     window.__joystickInput = { x: 0, y: 0 }
     window.__lookInput = { x: 0, y: 0 }
+    window.__elevationInput = 0
     return () => {
       delete window.__joystickInput
       delete window.__lookInput
+      delete window.__elevationInput
     }
   }, [])
 
@@ -125,6 +133,20 @@ export default function VirtualJoystick() {
     }
   }, [])
 
+  const elevationButtonStyle = {
+    width: '58px',
+    height: '58px',
+    borderRadius: '9999px',
+    border: '2px solid rgba(255,255,255,0.15)',
+    background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 100%)',
+    color: 'rgba(255,255,255,0.88)',
+    fontSize: '18px',
+    fontWeight: 700,
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    touchAction: 'none',
+  }
+
   if (!isMobile || !isExperienceFullscreen || navMode !== 'walk') return null
 
   return (
@@ -214,6 +236,44 @@ export default function VirtualJoystick() {
         </div>
         <div className="text-center mt-1 text-[9px] font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
           LOOK
+        </div>
+      </div>
+
+      <div
+        className="fixed z-[60] pointer-events-auto flex flex-col items-center gap-3"
+        style={{
+          right: '64px',
+          bottom: '248px',
+        }}
+      >
+        <button
+          type="button"
+          aria-label="위로 이동"
+          style={elevationButtonStyle}
+          onTouchStart={() => setElevationInput(1)}
+          onTouchEnd={() => setElevationInput(0)}
+          onTouchCancel={() => setElevationInput(0)}
+          onMouseDown={() => setElevationInput(1)}
+          onMouseUp={() => setElevationInput(0)}
+          onMouseLeave={() => setElevationInput(0)}
+        >
+          Q
+        </button>
+        <button
+          type="button"
+          aria-label="아래로 이동"
+          style={elevationButtonStyle}
+          onTouchStart={() => setElevationInput(-1)}
+          onTouchEnd={() => setElevationInput(0)}
+          onTouchCancel={() => setElevationInput(0)}
+          onMouseDown={() => setElevationInput(-1)}
+          onMouseUp={() => setElevationInput(0)}
+          onMouseLeave={() => setElevationInput(0)}
+        >
+          E
+        </button>
+        <div className="text-center text-[9px] font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          HEIGHT
         </div>
       </div>
     </>

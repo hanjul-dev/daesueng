@@ -20,6 +20,8 @@ export const FLOOR_VIEWS = [
       bounds: {
         minX: -22,
         maxX: 22,
+        minY: 1.2,
+        maxY: 12.6,
         minZ: -24,
         maxZ: 26,
       },
@@ -47,6 +49,8 @@ export const FLOOR_VIEWS = [
       bounds: {
         minX: -10.5,
         maxX: 10.5,
+        minY: 1.2,
+        maxY: 3.4,
         minZ: -11,
         maxZ: 9,
       },
@@ -74,6 +78,8 @@ export const FLOOR_VIEWS = [
       bounds: {
         minX: -9.5,
         maxX: 9.5,
+        minY: 5.1,
+        maxY: 7.8,
         minZ: -10,
         maxZ: 8.5,
       },
@@ -101,6 +107,8 @@ export const FLOOR_VIEWS = [
       bounds: {
         minX: -8.5,
         maxX: 8.5,
+        minY: 9.4,
+        maxY: 12.3,
         minZ: -8.5,
         maxZ: 7.5,
       },

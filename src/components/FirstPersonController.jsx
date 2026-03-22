@@ -6,6 +6,7 @@ import { getFloorViewConfig } from '../content/floorSections'
 import useAppStore from '../store/useAppStore'
 
 const WALK_SPEED = 5.2
+const VERTICAL_SPEED = 4.4
 const POSITION_EPSILON = 0.0005
 const YAW_EPSILON = 0.002
 const WORLD_LOOK_TARGET = new THREE.Vector3()
@@ -35,6 +36,8 @@ export default function FirstPersonController() {
     backward: false,
     left: false,
     right: false,
+    elevateUp: false,
+    elevateDown: false,
   })
   const yawRef = useRef(Math.PI)
   const syncedYawRef = useRef(Math.PI)
@@ -157,6 +160,14 @@ export default function FirstPersonController() {
           keyStateRef.current.right = pressed
           event.preventDefault()
           break
+        case 'KeyQ':
+          keyStateRef.current.elevateUp = pressed
+          event.preventDefault()
+          break
+        case 'KeyE':
+          keyStateRef.current.elevateDown = pressed
+          event.preventDefault()
+          break
         default:
           break
       }
@@ -176,6 +187,8 @@ export default function FirstPersonController() {
         backward: false,
         left: false,
         right: false,
+        elevateUp: false,
+        elevateDown: false,
       }
     }
 
@@ -204,12 +217,14 @@ export default function FirstPersonController() {
     const clampedDelta = Math.min(delta, 0.05)
     const joystickInput = window.__joystickInput ?? { x: 0, y: 0 }
     const lookInput = window.__lookInput ?? { x: 0, y: 0 }
+    const elevationInput = window.__elevationInput ?? 0
     const movementVector = movementVectorRef.current
     const forwardVector = forwardVectorRef.current
     const rightVector = rightVectorRef.current
     const lookEuler = lookEulerRef.current
     const localPosition = localPositionRef.current
     const moveStep = (WALK_SPEED * clampedDelta) / activeScale
+    const verticalStep = (VERTICAL_SPEED * clampedDelta) / activeScale
     const forwardInput =
       (keyStateRef.current.forward ? 1 : 0) -
       (keyStateRef.current.backward ? 1 : 0) +
@@ -218,6 +233,10 @@ export default function FirstPersonController() {
       (keyStateRef.current.right ? 1 : 0) -
       (keyStateRef.current.left ? 1 : 0) +
       joystickInput.x
+    const verticalInput =
+      (keyStateRef.current.elevateUp ? 1 : 0) -
+      (keyStateRef.current.elevateDown ? 1 : 0) +
+      elevationInput
 
     if (isWalkMode && isTouchDevice) {
       if (Math.abs(lookInput.x) > 0.0001 || Math.abs(lookInput.y) > 0.0001) {
@@ -239,7 +258,7 @@ export default function FirstPersonController() {
       forwardVector.normalize()
     }
 
-    rightVector.crossVectors(activeCamera.up, forwardVector).normalize()
+    rightVector.crossVectors(forwardVector, activeCamera.up).normalize()
 
     movementVector.set(0, 0, 0)
     movementVector.addScaledVector(forwardVector, forwardInput)
@@ -250,12 +269,20 @@ export default function FirstPersonController() {
       localPosition.add(movementVector)
     }
 
+    if (Math.abs(verticalInput) > 0.001) {
+      localPosition.y += verticalInput * verticalStep
+    }
+
     localPosition.x = THREE.MathUtils.clamp(
       localPosition.x,
       floorConfig.walk.bounds.minX,
       floorConfig.walk.bounds.maxX,
     )
-    localPosition.y = floorConfig.walk.eyeHeight
+    localPosition.y = THREE.MathUtils.clamp(
+      localPosition.y,
+      floorConfig.walk.bounds.minY ?? floorConfig.walk.eyeHeight,
+      floorConfig.walk.bounds.maxY ?? floorConfig.walk.eyeHeight,
+    )
     localPosition.z = THREE.MathUtils.clamp(
       localPosition.z,
       floorConfig.walk.bounds.minZ,
