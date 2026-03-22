@@ -7,7 +7,7 @@ const POINT_ICONS = [Building2, MapPinned, CarFront]
 
 export default function SellingPointsSection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16">
+    <section className="layout-shell pb-10 lg:pb-16">
       <div className="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-3">
           <Badge variant="secondary">외관 핵심 요약</Badge>
@@ -20,7 +20,7 @@ export default function SellingPointsSection() {
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-5">
         {SELLING_POINTS.map((point, index) => {
           const Icon = POINT_ICONS[index]
 

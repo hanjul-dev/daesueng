@@ -52,12 +52,21 @@ canvas {
   border-radius: 999px;
 }
 
+.layout-shell {
+  width: min(100% - calc(var(--layout-gutter) * 2), var(--layout-shell-max));
+  margin-inline: auto;
+}
+
+.layout-shell--wide {
+  width: min(100% - calc(var(--layout-gutter) * 2), var(--layout-shell-wide-max));
+}
+
 .photo-surface {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 34px;
-  padding: 28px;
+  border-radius: clamp(28px, 22px + 1vw, 40px);
+  padding: clamp(20px, 14px + 1vw, 32px);
   background: #c8c1b5;
   box-shadow: var(--theme-shadow-card);
 }
@@ -65,8 +74,8 @@ canvas {
 .photo-surface::before {
   content: '';
   position: absolute;
-  inset: 12px;
-  border-radius: 26px;
+  inset: clamp(10px, 8px + 0.3vw, 12px);
+  border-radius: clamp(22px, 18px + 0.7vw, 30px);
   border: 1px solid rgba(255, 255, 255, 0.18);
   pointer-events: none;
 }
@@ -105,6 +114,20 @@ canvas {
   pointer-events: none;
 }
 
+.photo-surface__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(5rem, 3.8rem + 2.2vw, 8rem);
+}
+
+.photo-surface__copy {
+  max-width: min(30rem, 78%);
+}
+
 .photo-surface--hero {
   background:
     radial-gradient(circle at 18% 16%, rgba(250, 246, 235, 0.82), transparent 28%),
@@ -129,12 +152,12 @@ canvas {
 .tour-island {
   position: relative;
   overflow: hidden;
-  border-radius: 40px;
+  border-radius: clamp(32px, 24px + 1vw, 44px);
   border: 1px solid var(--theme-island-border);
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
     linear-gradient(180deg, #121214 0%, #09090a 100%);
-  padding: 22px;
+  padding: clamp(18px, 14px + 0.7vw, 26px);
   box-shadow: var(--theme-shadow-island);
 }
 
@@ -173,7 +196,7 @@ canvas {
 .tour-stage {
   position: relative;
   overflow: hidden;
-  border-radius: 40px;
+  border-radius: clamp(32px, 24px + 1vw, 44px);
   border: 1px solid var(--theme-border-strong);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.68)),
@@ -203,17 +226,20 @@ canvas {
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid var(--theme-border);
-  padding: 24px 24px 18px;
+  padding:
+    clamp(20px, 16px + 0.8vw, 28px)
+    clamp(20px, 16px + 0.9vw, 28px)
+    clamp(16px, 14px + 0.5vw, 20px);
 }
 
 .tour-stage__viewer {
   position: relative;
   z-index: 1;
-  min-height: 620px;
-  height: min(72vh, 820px);
-  margin: 20px;
+  min-height: 0;
+  height: clamp(360px, 56vh, 920px);
+  margin: clamp(14px, 10px + 0.7vw, 20px);
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: clamp(24px, 20px + 0.7vw, 32px);
   border: 1px solid rgba(17, 18, 20, 0.08);
   background: var(--theme-viewer-background);
 }
@@ -261,16 +287,28 @@ canvas {
   }
 }
 
+@media (min-width: 1280px) {
+  .tour-stage__viewer {
+    height: clamp(520px, 60vh, 980px);
+  }
+}
+
+@media (min-width: 1680px) {
+  .photo-surface__copy {
+    max-width: min(36rem, 72%);
+  }
+
+  .tour-stage__viewer {
+    height: clamp(620px, 64vh, 1100px);
+  }
+}
+
 @media (max-width: 640px) {
-  .photo-surface {
-    padding: 22px;
+  .photo-surface__content {
+    gap: 5rem;
   }
 
-  .photo-surface .relative.z-10 {
-    gap: 7rem;
-  }
-
-  .photo-surface .max-w-\[72\%\] {
+  .photo-surface__copy {
     max-width: 88%;
   }
 
@@ -283,9 +321,8 @@ canvas {
   }
 
   .tour-stage__viewer {
-    min-height: 420px;
-    height: 54vh;
-    margin: 16px;
+    height: clamp(320px, 48vh, 500px);
+    margin: 14px;
   }
 }
 

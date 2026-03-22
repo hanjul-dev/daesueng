@@ -28,7 +28,7 @@ export const PROPERTY_MEDIA = [
     eyebrow: '대표 외관',
     title: '정면 입면과 커튼월 인상',
     description: '석재 매스와 짙은 프레임의 대비가 첫인상을 분명하게 만듭니다.',
-    className: 'md:col-span-2 min-h-[420px] sm:min-h-[520px]',
+    className: 'md:col-span-2 min-h-[360px] sm:min-h-[520px] xl:min-h-[620px] 2xl:min-h-[720px]',
   },
   {
     tone: 'park',

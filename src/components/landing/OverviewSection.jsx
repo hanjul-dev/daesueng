@@ -6,9 +6,9 @@ export default function OverviewSection() {
   return (
     <section
       id="overview"
-      className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-10 sm:px-6 lg:px-8 lg:pb-16"
+      className="layout-shell scroll-mt-28 pb-10 lg:pb-16"
     >
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] 2xl:grid-cols-[minmax(0,1.16fr)_minmax(360px,0.84fr)]">
         <Card className="rounded-[40px]">
           <CardHeader className="space-y-4">
             <Badge variant="secondary">매물 소개</Badge>

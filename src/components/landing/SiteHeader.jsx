@@ -6,7 +6,7 @@ import { scrollToSection } from './landingUtils'
 export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--theme-border)] bg-white/82 backdrop-blur-2xl">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:flex-nowrap lg:gap-4 lg:px-8">
+      <div className="layout-shell layout-shell--wide flex flex-wrap items-center justify-between gap-3 py-4 lg:flex-nowrap lg:gap-4">
         <div className="flex items-center gap-3">
           <Badge>{PROPERTY_CONTENT.brand}</Badge>
           <span className="hidden text-sm text-[color:var(--theme-subtle-foreground)] sm:block">
@@ -14,7 +14,7 @@ export default function SiteHeader() {
           </span>
         </div>
 
-        <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 lg:w-auto lg:overflow-visible lg:pb-0">
+        <div className="flex w-full items-center justify-end gap-2 overflow-x-auto pb-1 lg:w-auto lg:overflow-visible lg:pb-0">
           <Button variant="ghost" size="sm" onClick={() => scrollToSection('overview')}>
             매물 소개
           </Button>

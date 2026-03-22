@@ -7,7 +7,13 @@ export default function PropertyShot({ tone, eyebrow, title, description, classN
   const isPrimaryPhoto = tone === 'hero'
 
   return (
-    <article className={cn('photo-surface', `photo-surface--${tone}`, className)}>
+    <article
+      className={cn(
+        'photo-surface min-h-[280px] sm:min-h-[320px] lg:min-h-[360px] 2xl:min-h-[400px]',
+        `photo-surface--${tone}`,
+        className,
+      )}
+    >
       {photoAsset && (
         <>
           <img
@@ -18,15 +24,19 @@ export default function PropertyShot({ tone, eyebrow, title, description, classN
             loading={isPrimaryPhoto ? 'eager' : 'lazy'}
             fetchPriority={isPrimaryPhoto ? 'high' : 'low'}
             decoding="async"
-            sizes={isPrimaryPhoto ? '(max-width: 768px) 100vw, 60vw' : '(max-width: 768px) 100vw, 30vw'}
+            sizes={
+              isPrimaryPhoto
+                ? '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 56vw'
+                : '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 28vw'
+            }
           />
           <div className="photo-surface__overlay" />
         </>
       )}
       <div className="photo-surface__grain" />
 
-      <div className="relative z-10 flex h-full flex-col justify-between gap-10">
-        <div className="max-w-[72%] space-y-3">
+      <div className="photo-surface__content">
+        <div className="photo-surface__copy space-y-3">
           <Badge variant="inverse" className="w-fit border-white/15 bg-black/60 text-white">
             {eyebrow}
           </Badge>

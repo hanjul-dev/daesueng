@@ -9,16 +9,16 @@ const HERO_ICONS = [House, TreePine, CarFront]
 
 export default function HeroSection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pt-16 lg:px-8 lg:pb-16">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(380px,0.98fr)] xl:items-start lg:gap-8">
+    <section className="layout-shell layout-shell--wide pb-10 pt-10 sm:pt-16 lg:pb-16 xl:pb-20">
+      <div className="grid gap-6 lg:gap-8 xl:grid-cols-[minmax(0,0.94fr)_minmax(460px,1.06fr)] xl:items-start 2xl:gap-10 2xl:grid-cols-[minmax(0,0.88fr)_minmax(560px,1.12fr)]">
         <div className="space-y-8">
           <div className="space-y-5">
             <Badge variant="secondary">{PROPERTY_CONTENT.badge}</Badge>
             <div className="space-y-4">
-              <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-[color:var(--theme-foreground)] sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-4xl text-4xl font-semibold leading-[0.95] tracking-[-0.05em] text-[color:var(--theme-foreground)] sm:text-5xl lg:text-6xl xl:text-[4.25rem] 2xl:text-[4.75rem]">
                 {PROPERTY_CONTENT.title}
               </h1>
-              <p className="max-w-2xl text-base leading-8 text-[color:var(--theme-muted-foreground)] sm:text-lg">
+              <p className="max-w-2xl text-base leading-8 text-[color:var(--theme-muted-foreground)] sm:text-lg xl:max-w-3xl">
                 {PROPERTY_CONTENT.description}
               </p>
             </div>
@@ -34,7 +34,7 @@ export default function HeroSection() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:gap-4">
             {PROPERTY_CONTENT.heroFacts.map((fact, index) => {
               const Icon = HERO_ICONS[index]
               const isLastCard = index === PROPERTY_CONTENT.heroFacts.length - 1
@@ -59,7 +59,7 @@ export default function HeroSection() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:gap-5">
           {PROPERTY_MEDIA.map((item) => (
             <PropertyShot
               key={item.title}

@@ -81,7 +81,7 @@ export default function ExperienceSection({ viewer }) {
   }
 
   return (
-    <section id="experience" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-20 sm:px-6 lg:px-8">
+    <section id="experience" className="layout-shell layout-shell--wide scroll-mt-28 pb-20">
       <div className="space-y-6">
         <div className="tour-island">
           <div className="tour-island__shell">
@@ -120,7 +120,7 @@ export default function ExperienceSection({ viewer }) {
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(320px,0.84fr)_minmax(0,1.16fr)] xl:items-start 2xl:grid-cols-[minmax(360px,0.8fr)_minmax(0,1.2fr)]">
           <div className="order-2 xl:order-1">
             <ExperienceControls />
           </div>
@@ -155,7 +155,7 @@ export default function ExperienceSection({ viewer }) {
               </div>
             </div>
 
-            <div className="tour-stage__description px-6 pt-2">
+            <div className="tour-stage__description px-5 pt-2 sm:px-6 xl:px-7">
               <p className="max-w-2xl text-sm leading-7 text-[color:var(--theme-muted-foreground)]">
                 {TOUR_CONTENT.stageDescription}
               </p>
