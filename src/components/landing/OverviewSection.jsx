@@ -6,7 +6,7 @@ export default function OverviewSection() {
   return (
     <section
       id="overview"
-      className="layout-shell scroll-mt-28 pb-10 lg:pb-16"
+      className="layout-shell layout-shell--wide scroll-mt-28 pb-10 lg:pb-16"
     >
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] 2xl:grid-cols-[minmax(0,1.16fr)_minmax(360px,0.84fr)]">
         <Card className="rounded-[40px]">

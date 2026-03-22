@@ -74,26 +74,13 @@ export default function Environment3D() {
         <meshStandardMaterial color="#bcb7ae" roughness={0.96} />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3.46, -15.5]} receiveShadow>
-        <planeGeometry args={[44, 10]} />
-        <meshStandardMaterial color="#6c6a68" roughness={0.94} />
-      </mesh>
-
-      {modelMode === 'glb' && (
-        <>
-          <mesh position={[0, 7, -42]} receiveShadow>
-            <boxGeometry args={[90, 18, 0.4]} />
-            <meshStandardMaterial color="#d9d4cb" roughness={1} />
-          </mesh>
-          <mesh position={[0, 1.5, -27]} receiveShadow>
-            <boxGeometry args={[90, 0.16, 10]} />
-            <meshStandardMaterial color="#b6b0a7" roughness={0.98} />
-          </mesh>
-        </>
-      )}
-
       {modelMode !== 'glb' && (
         <>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3.46, -15.5]} receiveShadow>
+            <planeGeometry args={[44, 10]} />
+            <meshStandardMaterial color="#6c6a68" roughness={0.94} />
+          </mesh>
+
           <mesh position={[-10.8, -2.6, -11.2]} rotation={[0, 0, -0.18]} castShadow receiveShadow>
             <boxGeometry args={[6.4, 1.5, 0.8]} />
             <meshStandardMaterial color="#bdb5aa" roughness={0.92} />

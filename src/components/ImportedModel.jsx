@@ -1,8 +1,15 @@
 import { useEffect, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { getFloorViewConfig } from '../content/floorSections'
+import useAppStore from '../store/useAppStore'
 
 const DEFAULT_MODEL_URL = '/models/daeseung-villa-2k.glb'
+const SITE_KEEP_BOUNDS = {
+  maxHorizontalOffsetX: 140,
+  minHorizontalOffsetZ: -80,
+  maxHorizontalOffsetZ: 128,
+}
 
 function tuneMaterial(material) {
   const nextMaterial = material.clone()
@@ -32,6 +39,33 @@ function tuneMaterial(material) {
 
 function prepareModel(scene, desiredLongestEdge) {
   const clone = scene.clone(true)
+  const sceneBox = new THREE.Box3().setFromObject(clone)
+  const sceneCenter = new THREE.Vector3()
+  const childCenter = new THREE.Vector3()
+  const childBox = new THREE.Box3()
+  const nodesToRemove = []
+
+  sceneBox.getCenter(sceneCenter)
+
+  clone.traverse((child) => {
+    if (!child.isMesh) return
+
+    childBox.setFromObject(child)
+    childBox.getCenter(childCenter)
+
+    const offsetX = childCenter.x - sceneCenter.x
+    const offsetZ = childCenter.z - sceneCenter.z
+    const shouldKeep =
+      Math.abs(offsetX) <= SITE_KEEP_BOUNDS.maxHorizontalOffsetX &&
+      offsetZ >= SITE_KEEP_BOUNDS.minHorizontalOffsetZ &&
+      offsetZ <= SITE_KEEP_BOUNDS.maxHorizontalOffsetZ
+
+    if (!shouldKeep) {
+      nodesToRemove.push(child)
+    }
+  })
+
+  nodesToRemove.forEach((child) => child.parent?.remove(child))
 
   clone.traverse((child) => {
     if (!child.isMesh) return
@@ -69,11 +103,49 @@ export default function ImportedModel({
   onReady,
 }) {
   const { scene } = useGLTF(url)
+  const floorView = useAppStore((state) => state.floorView)
+  const modelTransform = useAppStore((state) => state.modelTransform)
 
   const preparedModel = useMemo(
     () => prepareModel(scene, desiredLongestEdge),
     [desiredLongestEdge, scene],
   )
+
+  useEffect(() => {
+    const activeFloor = getFloorViewConfig(floorView)
+    const activeScale = preparedModel.normalizedScale * modelTransform.scale
+    const clippingPlanes =
+      activeFloor.slice === null
+        ? null
+        : [
+            new THREE.Plane(
+              new THREE.Vector3(0, 1, 0),
+              -(modelTransform.positionY + activeFloor.slice.minHeight * activeScale),
+            ),
+            new THREE.Plane(
+              new THREE.Vector3(0, -1, 0),
+              modelTransform.positionY + activeFloor.slice.maxHeight * activeScale,
+            ),
+          ]
+
+    preparedModel.clone.traverse((child) => {
+      if (!child.isMesh) return
+
+      const materials = Array.isArray(child.material) ? child.material : [child.material]
+      materials.forEach((material) => {
+        if (!material) return
+        material.clippingPlanes = clippingPlanes
+        material.clipShadows = clippingPlanes !== null
+        material.needsUpdate = true
+      })
+    })
+  }, [
+    floorView,
+    modelTransform.positionY,
+    modelTransform.scale,
+    preparedModel.clone,
+    preparedModel.normalizedScale,
+  ])
 
   useEffect(() => {
     onReady?.()

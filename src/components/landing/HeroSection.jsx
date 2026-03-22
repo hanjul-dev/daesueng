@@ -8,10 +8,12 @@ import { scrollToSection } from './landingUtils'
 const HERO_ICONS = [House, TreePine, CarFront]
 
 export default function HeroSection() {
+  const [primaryMedia, ...secondaryMedia] = PROPERTY_MEDIA
+
   return (
     <section className="layout-shell layout-shell--wide pb-10 pt-10 sm:pt-16 lg:pb-16 xl:pb-20">
-      <div className="grid gap-6 lg:gap-8 xl:grid-cols-[minmax(0,0.94fr)_minmax(460px,1.06fr)] xl:items-start 2xl:gap-10 2xl:grid-cols-[minmax(0,0.88fr)_minmax(560px,1.12fr)]">
-        <div className="space-y-8">
+      <div className="grid grid-cols-12 gap-4 lg:gap-5 xl:gap-6 2xl:gap-7">
+        <div className="col-span-12 space-y-8 xl:col-span-5 xl:self-center xl:space-y-10 xl:pr-6">
           <div className="space-y-5">
             <Badge variant="secondary">{PROPERTY_CONTENT.badge}</Badge>
             <div className="space-y-4">
@@ -33,44 +35,48 @@ export default function HeroSection() {
               {PROPERTY_CONTENT.secondaryAction}
             </Button>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:gap-4">
-            {PROPERTY_CONTENT.heroFacts.map((fact, index) => {
-              const Icon = HERO_ICONS[index]
-              const isLastCard = index === PROPERTY_CONTENT.heroFacts.length - 1
-
-              return (
-                <div
-                  key={fact.label}
-                  className={`rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl ${
-                    isLastCard ? 'col-span-2 sm:col-span-1' : ''
-                  }`}
-                >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--theme-accent-muted)]">
-                    <Icon className="h-5 w-5 text-[color:var(--theme-foreground)]" />
-                  </div>
-                  <p className="text-xs text-[color:var(--theme-subtle-foreground)]">{fact.label}</p>
-                  <p className="mt-2 text-base font-medium text-[color:var(--theme-foreground)]">
-                    {fact.value}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
         </div>
 
-        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:gap-5">
-          {PROPERTY_MEDIA.map((item) => (
-            <PropertyShot
-              key={item.title}
-              tone={item.tone}
-              eyebrow={item.eyebrow}
-              title={item.title}
-              description={item.description}
-              className={item.className}
-            />
-          ))}
-        </div>
+        <PropertyShot
+          tone={primaryMedia.tone}
+          eyebrow={primaryMedia.eyebrow}
+          title={primaryMedia.title}
+          description={primaryMedia.description}
+          className="col-span-12 xl:col-span-7 min-h-[360px] sm:min-h-[460px] xl:min-h-[540px] 2xl:min-h-[620px]"
+        />
+
+        {PROPERTY_CONTENT.heroFacts.map((fact, index) => {
+          const Icon = HERO_ICONS[index]
+          const isLastCard = index === PROPERTY_CONTENT.heroFacts.length - 1
+
+          return (
+            <div
+              key={fact.label}
+              className={`col-span-12 rounded-[28px] border border-[color:var(--theme-border)] bg-white/72 p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl sm:col-span-4 ${
+                isLastCard ? 'sm:col-span-4' : ''
+              }`}
+            >
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--theme-accent-muted)]">
+                <Icon className="h-5 w-5 text-[color:var(--theme-foreground)]" />
+              </div>
+              <p className="text-xs text-[color:var(--theme-subtle-foreground)]">{fact.label}</p>
+              <p className="mt-2 text-base font-medium text-[color:var(--theme-foreground)]">
+                {fact.value}
+              </p>
+            </div>
+          )
+        })}
+
+        {secondaryMedia.map((item) => (
+          <PropertyShot
+            key={item.title}
+            tone={item.tone}
+            eyebrow={item.eyebrow}
+            title={item.title}
+            description={item.description}
+            className="col-span-12 sm:col-span-6 min-h-[300px] sm:min-h-[360px] xl:min-h-[420px] 2xl:min-h-[500px]"
+          />
+        ))}
       </div>
     </section>
   )

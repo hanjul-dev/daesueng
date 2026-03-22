@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { DEFAULT_FLOOR_VIEW } from '../content/floorSections'
 
 const DEFAULT_MODEL_TRANSFORM = {
   scale: 0.98,
@@ -15,6 +16,11 @@ const DEFAULT_LIGHT_TUNING = {
   fillHeight: 9.5,
   fillIntensity: 2.12,
   exposure: 1.6,
+}
+
+const DEFAULT_EXPLORER_STATE = {
+  localPosition: [0, 1.72, 12],
+  yaw: Math.PI,
 }
 
 function clampTime(hour) {
@@ -37,6 +43,17 @@ const useAppStore = create((set) => ({
   setNavMode: (navMode) => set({ navMode }),
   isExperienceFullscreen: false,
   setExperienceFullscreen: (isExperienceFullscreen) => set({ isExperienceFullscreen }),
+  floorView: DEFAULT_FLOOR_VIEW,
+  setFloorView: (floorView) => set({ floorView }),
+  explorer: DEFAULT_EXPLORER_STATE,
+  setExplorer: (nextExplorer) =>
+    set((state) => ({
+      explorer: {
+        ...state.explorer,
+        ...nextExplorer,
+      },
+    })),
+  resetExplorer: () => set({ explorer: DEFAULT_EXPLORER_STATE }),
 
   timeOfDay: 10.5,
   setTimeOfDay: (timeOfDay) => set({ timeOfDay: clampTime(timeOfDay) }),

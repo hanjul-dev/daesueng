@@ -1,4 +1,5 @@
 import { Gamepad2, Monitor, MoonStar, SunMedium, X } from 'lucide-react'
+import { FLOOR_VIEWS, getFloorViewConfig } from '../../content/floorSections'
 import { TIME_PRESETS } from '../../content/property'
 import { cn } from '../../lib/utils'
 import useAppStore from '../../store/useAppStore'
@@ -6,12 +7,14 @@ import useAppStore from '../../store/useAppStore'
 export default function FullscreenExperienceHud({ isTouchDevice, onCloseFullscreen }) {
   const navMode = useAppStore((state) => state.navMode)
   const setNavMode = useAppStore((state) => state.setNavMode)
+  const floorView = useAppStore((state) => state.floorView)
+  const setFloorView = useAppStore((state) => state.setFloorView)
   const timeOfDay = useAppStore((state) => state.timeOfDay)
   const setTimeOfDay = useAppStore((state) => state.setTimeOfDay)
+  const activeFloor = getFloorViewConfig(floorView)
 
   function activateWalkMode() {
     setNavMode('walk')
-    window.dispatchEvent(new Event('experience-enter-walk'))
   }
 
   function activateOrbitMode() {
@@ -21,10 +24,14 @@ export default function FullscreenExperienceHud({ isTouchDevice, onCloseFullscre
   const instructionText = isTouchDevice
     ? navMode === 'walk'
       ? '왼쪽 조이스틱으로 이동하고 오른쪽 패드로 시야를 조절하세요.'
-      : '한 손가락 드래그로 회전하고 두 손가락으로 확대·축소할 수 있습니다.'
+      : floorView === 'overview'
+        ? '한 손가락 드래그로 회전하고 두 손가락으로 확대·축소할 수 있습니다.'
+        : '위에서 내려다보며 층 단면을 확인하고, 필요하면 Walk로 바로 내려가세요.'
     : navMode === 'walk'
       ? '화면을 한 번 클릭한 뒤 마우스로 시야를 돌리고 WASD로 이동하세요. Esc로 마우스 잠금을 해제할 수 있습니다.'
-      : '마우스로 드래그하며 회전하고 휠로 확대·축소할 수 있습니다.'
+      : floorView === 'overview'
+        ? '마우스로 드래그하며 회전하고 휠로 확대·축소할 수 있습니다.'
+        : 'Orbit 상태에서도 사람 기준점을 위에서 따라가며 층 단면을 확인할 수 있습니다.'
 
   return (
     <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-4 sm:p-6">
@@ -79,26 +86,53 @@ export default function FullscreenExperienceHud({ isTouchDevice, onCloseFullscre
           <p className="mt-2 text-lg font-semibold">
             {navMode === 'walk' ? '직접 걸어보는 모드' : '외관을 회전하며 보는 모드'}
           </p>
+          <p className="mt-2 text-xs uppercase tracking-[0.12em] text-white/52">
+            Section {activeFloor.label}
+          </p>
           <p className="mt-2 text-sm leading-7 text-white/78">{instructionText}</p>
         </div>
 
-        <div className="pointer-events-auto flex flex-wrap items-center gap-2 rounded-[28px] border border-white/12 bg-black/42 p-3 backdrop-blur-2xl">
-          {TIME_PRESETS.map((preset) => (
-            <button
-              key={preset.label}
-              type="button"
-              className={cn(
-                'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                Math.abs(timeOfDay - preset.value) < 0.26
-                  ? 'bg-white text-black'
-                  : 'bg-white/8 text-white/76 hover:bg-white/14 hover:text-white',
-              )}
-              onClick={() => setTimeOfDay(preset.value)}
-            >
-              {preset.label === '야간' ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
-              {preset.label}
-            </button>
-          ))}
+        <div className="pointer-events-auto flex flex-col gap-3 rounded-[28px] border border-white/12 bg-black/42 p-3 backdrop-blur-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            {FLOOR_VIEWS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  floorView === item.id
+                    ? 'bg-white text-black'
+                    : 'bg-white/8 text-white/76 hover:bg-white/14 hover:text-white',
+                )}
+                onClick={() => setFloorView(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {TIME_PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  Math.abs(timeOfDay - preset.value) < 0.26
+                    ? 'bg-white text-black'
+                    : 'bg-white/8 text-white/76 hover:bg-white/14 hover:text-white',
+                )}
+                onClick={() => setTimeOfDay(preset.value)}
+              >
+                {preset.label === '야간' ? (
+                  <MoonStar className="h-4 w-4" />
+                ) : (
+                  <SunMedium className="h-4 w-4" />
+                )}
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

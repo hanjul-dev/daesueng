@@ -13,7 +13,7 @@ export default function CalibrationSection() {
   }
 
   return (
-    <section className="layout-shell pb-20 pt-2">
+    <section className="layout-shell layout-shell--wide pb-20 pt-2">
       <div className="rounded-[40px] border border-[color:var(--theme-border)] bg-[color:var(--theme-panel)] p-5 shadow-[var(--theme-shadow-soft)] backdrop-blur-xl sm:p-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">

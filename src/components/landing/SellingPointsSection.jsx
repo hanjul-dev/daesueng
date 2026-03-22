@@ -7,7 +7,7 @@ const POINT_ICONS = [Building2, MapPinned, CarFront]
 
 export default function SellingPointsSection() {
   return (
-    <section className="layout-shell pb-10 lg:pb-16">
+    <section className="layout-shell layout-shell--wide pb-10 lg:pb-16">
       <div className="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-3">
           <Badge variant="secondary">외관 핵심 요약</Badge>
